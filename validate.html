@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="warm">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Validate data.js — Fat Cat Rolling</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .check-list { list-style: none; padding: 0; margin: 24px 0; display: grid; gap: 12px; max-width: 800px; }
+    .check-list li {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--card);
+      border-radius: 6px;
+      align-items: center;
+      font-size: 14px;
+    }
+    .check-list .icon { font-size: 18px; line-height: 1; }
+    .check-list .ok    { color: #2a9d4f; }
+    .check-list .fail  { color: #c43d1f; }
+    .check-list .warn  { color: #c47a1f; }
+    .summary {
+      padding: 24px;
+      border-radius: 8px;
+      margin: 24px 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .summary.ok   { background: #d6edd9; color: #1e6932; }
+    .summary.fail { background: #f3d3cc; color: #8a2814; }
+    pre { background: var(--card); padding: 16px; border-radius: 6px; overflow: auto; font-size: 12px; }
+    .legend {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 16px 0 0;
+    }
+  </style>
+</head>
+<body data-page="validate">
+  <div class="container">
+
+    <nav class="topnav" aria-label="Primary">
+      <ul class="topnav__links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="validate.html" aria-current="page">Validate</a></li>
+      </ul>
+    </nav>
+
+    <header class="hero" style="padding: 32px 0;">
+      <h1 class="hero__name" style="font-size: clamp(40px, 8vw, 80px);">Preflight</h1>
+      <p class="hero__tagline">Run this before you push. Green means good to go.</p>
+    </header>
+
+    <div id="results"></div>
+
+    <p class="legend">
+      Tip: open this page from your local files (double-click <code>validate.html</code> in Explorer).
+      It reads the same <code>data.js</code> the live site uses.
+    </p>
+
+  </div>
+
+  <div class="palette" role="group" aria-label="Color palette">
+    <button class="palette__swatch palette__swatch--warm"   data-palette="warm"   aria-label="Warm palette"   aria-pressed="true"></button>
+    <button class="palette__swatch palette__swatch--blue"   data-palette="blue"   aria-label="Blue palette"   aria-pressed="false"></button>
+    <button class="palette__swatch palette__swatch--purple" data-palette="purple" aria-label="Purple palette" aria-pressed="false"></button>
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    (function () {
+      var results = document.getElementById('results');
+      var checks = [];
+      var pending = 0;
+      function add(ok, label, detail) {
+        checks.push({ ok: ok, label: label, detail: detail });
+      }
+      function render() {
+        var bad  = checks.filter(function (c) { return c.ok === false; }).length;
+        var warn = checks.filter(function (c) { return c.ok === 'warn'; }).length;
+        var summaryHtml =
+          '<div class="summary ' + (bad ? 'fail' : 'ok') + '">' +
+            (bad ? '✗ ' + bad + ' issue(s) found — fix before pushing.' :
+                   '✓ All checks passed. Safe to push.') +
+            (warn ? '  (' + warn + ' warning' + (warn>1?'s':'') + ')' : '') +
+          '</div>';
+        var listHtml = '<ul class="check-list">' +
+          checks.map(function (c) {
+            var iconCls = c.ok === true ? 'ok' : (c.ok === false ? 'fail' : 'warn');
+            var icon = c.ok === true ? '✓' : (c.ok === false ? '✗' : '!');
+            return '<li><span class="icon ' + iconCls + '">' + icon + '</span>' +
+                   '<span><strong>' + c.label + '</strong>' +
+                   (c.detail ? '<br/><span style="color:var(--muted);font-size:12px;">' + c.detail + '</span>' : '') +
+                   '</span></li>';
+          }).join('') +
+          '</ul>';
+        results.innerHTML = summaryHtml + listHtml;
+      }
+
+      // --- Check 1: data.js parsed?
+      if (window.SITE_DATA_ERROR) {
+        add(false, 'data.js failed to parse',
+          'Error: ' + window.SITE_DATA_ERROR.message +
+          '\n\nLikely cause: a missing comma, an unescaped apostrophe, or a missing quote. ' +
+          'Open data.js in a text editor and look near the line mentioned above.');
+        render();
+        return;
+      }
+      if (!window.SITE_DATA) {
+        add(false, 'data.js did not load', 'Make sure data.js is in the same folder as validate.html.');
+        render();
+        return;
+      }
+      add(true, 'data.js parses cleanly');
+
+      var DATA = window.SITE_DATA;
+
+      // --- Check 2: profile fields
+      if (DATA.profile && DATA.profile.name)      add(true,  'Profile: name set');
+      else                                        add(false, 'Profile: name missing', 'Set profile.name in data.js');
+
+      if (DATA.profile && DATA.profile.email)     add(true,  'Profile: email set');
+      else                                        add(false, 'Profile: email missing', 'Set profile.email in data.js');
+
+      if (DATA.profile && DATA.profile.credits && DATA.profile.credits.length)
+        add(true,  'Profile: ' + DATA.profile.credits.length + ' credits listed');
+      else
+        add('warn', 'Profile: no credits', 'Add at least one entry to profile.credits');
+
+      // --- Check 3: socials
+      var socials = (DATA.profile && DATA.profile.socials) || {};
+      ['instagram','vimeo','linkedin'].forEach(function (k) {
+        if (socials[k] && socials[k].url) add(true,  'Social: ' + k + ' linked');
+        else                              add('warn','Social: ' + k + ' missing url', 'Set profile.socials.' + k + '.url');
+      });
+
+      // --- Check 4: reels
+      ['tech','animation','vfx'].forEach(function (k) {
+        var r = (DATA.reels || {})[k];
+        if (!r) { add(false, 'Reel: ' + k + ' missing', 'Add reels.' + k + ' in data.js'); return; }
+        if (r.provider === 'placeholder')
+          add('warn', 'Reel: ' + k + ' is placeholder',
+            'Set reels.' + k + '.provider to "vimeo" or "youtube" and fill .id when ready');
+        else if (!r.id)
+          add(false, 'Reel: ' + k + ' has provider but no id', 'Set reels.' + k + '.id (the Vimeo/YouTube video ID)');
+        else
+          add(true,  'Reel: ' + k + ' configured (' + r.provider + ' ' + r.id + ')');
+
+        if (r.poster) checks_url(r.poster, 'Reel poster: ' + k);
+      });
+
+      // --- Check 5: gallery items + image existence
+      ['home','animation','vfx'].forEach(function (k) {
+        var items = (DATA.gallery || {})[k] || [];
+        add(true, 'Gallery: ' + k + ' has ' + items.length + ' item(s)');
+        items.forEach(function (it, i) {
+          if (!it.src) { add(false, 'Gallery ' + k + '[' + i + ']: missing src'); return; }
+          // Filename sanity
+          var fn = it.src.split('/').pop();
+          if (fn !== fn.toLowerCase())
+            add(false, 'Gallery ' + k + '[' + i + ']: filename has uppercase',
+                fn + ' — GitHub Pages is case-sensitive. Rename to lowercase.');
+          if (/\s/.test(fn))
+            add(false, 'Gallery ' + k + '[' + i + ']: filename has spaces',
+                fn + ' — replace spaces with hyphens.');
+          var label = it.title || fn;
+          if (it.type === 'video') {
+            checks_video(it.src, 'Video: ' + label);
+            if (it.poster) checks_url(it.poster, 'Poster: ' + label);
+          } else {
+            checks_url(it.src, 'Image: ' + label);
+          }
+        });
+      });
+
+      // --- Check 6: about
+      if (DATA.about && DATA.about.shortBio) add(true,  'About: short bio set');
+      else                                   add('warn','About: short bio missing', 'Set about.shortBio');
+      if (DATA.about && DATA.about.longBio)  add(true,  'About: long bio set');
+      else                                   add('warn','About: long bio missing', 'Set about.longBio');
+
+      // Existence checks: images via Image(), videos via a <video> element —
+      // both work over file:// (fetch() does not). Counter settles each one.
+      function settle() { pending--; if (!pending) render(); }
+      function checks_url(url, label) {
+        pending++;
+        var img = new Image();
+        img.onload  = function () { add(true,  label, url); settle(); };
+        img.onerror = function () { add(false, label + ' — not found', url); settle(); };
+        img.src = url;
+      }
+      function checks_video(url, label) {
+        pending++;
+        var v = document.createElement('video');
+        v.preload = 'metadata';
+        v.onloadedmetadata = function () { add(true,  label, url); settle(); };
+        v.onerror          = function () { add(false, label + ' — not found', url); settle(); };
+        v.src = url;
+      }
+
+      // If nothing is pending, render immediately
+      if (!pending) render();
+    })();
+
+    // Palette switcher (subset of script.js)
+    (function () {
+      var saved = 'warm';
+      try { saved = localStorage.getItem('palette') || 'warm'; } catch (e) {}
+      document.documentElement.setAttribute('data-palette', saved);
+      document.querySelectorAll('.palette__swatch').forEach(function (s) {
+        s.setAttribute('aria-pressed', s.dataset.palette === saved ? 'true' : 'false');
+        s.addEventListener('click', function () {
+          var name = s.dataset.palette;
+          document.documentElement.setAttribute('data-palette', name);
+          try { localStorage.setItem('palette', name); } catch (e) {}
+          document.querySelectorAll('.palette__swatch').forEach(function (x) {
+            x.setAttribute('aria-pressed', x.dataset.palette === name ? 'true' : 'false');
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

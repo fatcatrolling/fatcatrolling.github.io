@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="warm">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>VFX Reel — Kim Nguyen | Fat Cat Rolling</title>
+  <meta name="description" content="VFX reel and selected work by Kim Nguyen — sims, FX, integration, and compositing." />
+  <meta name="robots" content="noai, noimageai" />
+  <link rel="canonical" href="https://fatcatrolling.com/vfx" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="VFX Reel — Kim Nguyen" />
+  <meta property="og:description" content="Sims, FX, integration, and compositing." />
+  <meta property="og:url" content="https://fatcatrolling.com/vfx" />
+  <meta property="og:image" content="https://fatcatrolling.com/images/og-vfx.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://fatcatrolling.com/images/og-vfx.jpg" />
+
+  <link rel="icon" href="favicon.ico?v=4" sizes="32x32" />
+  <link rel="icon" type="image/png" href="favicon.png?v=4" sizes="64x64" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600;700;800;900&display=block" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="vfx">
+  <a class="skip-link" href="#work">Skip to work</a>
+
+  <div class="page-top">
+  <div class="container">
+
+    <nav class="topnav" aria-label="Primary">
+      <ul class="topnav__links">
+        <li><a href="index.html" data-text="Home">Home</a></li>
+        <li><a href="animation.html" data-text="Animation">Animation</a></li>
+        <li><a href="vfx.html" data-text="VFX" aria-current="page">VFX</a></li>
+        <li><a href="about.html" data-text="About">About</a></li>
+      </ul>
+    </nav>
+
+    <!-- Hero — unified: same one-line name + meta + OrangeCat as every page -->
+    <header class="hero">
+      <div class="hero__grid">
+        <h1 class="hero__name" data-bind="pages.heroName">Kim Nguyen</h1>
+        <div class="hero__meta">
+          <div class="hero__roles" data-bind="roles" aria-label="Disciplines"></div>
+          <span data-bind="location">Los Angeles, CA</span>
+          <a data-bind="email" href="mailto:hello@fatcatrolling.com">hello@fatcatrolling.com</a>
+        </div>
+        <div class="hero__mascot" aria-hidden="true">
+          <span class="cat" aria-hidden="true">
+            <span class="cat__body"><span class="cat__body-idle">
+              <img class="cat__part" src="images/OrangeCat_webp/01_OrangeCat_torso.webp" alt="" />
+              <img class="cat__part" src="images/OrangeCat_webp/02_OrangeCat_scarf.webp" alt="" />
+              <img class="cat__part" src="images/OrangeCat_webp/03_OrangeCat_arm.webp" alt="" />
+            </span></span>
+            <span class="cat__ears"><span class="cat__ears-idle">
+              <img class="cat__part" src="images/OrangeCat_webp/04_OrangeCat_ears.webp" alt="" />
+            </span></span>
+            <span class="cat__head"><span class="cat__head-idle">
+              <img class="cat__part" src="images/OrangeCat_webp/05_OrangeCat_head.webp" alt="" />
+              <img class="cat__part cat__mouth cat__mouth--closed" src="images/OrangeCat_webp/06_OrangeCat_mouthClosed.webp" alt="" />
+              <img class="cat__part cat__mouth cat__mouth--open"   src="images/OrangeCat_webp/06_OrangeCat_mouthOpen.webp" alt="" />
+              <img class="cat__part" src="images/OrangeCat_webp/07_OrangeCat_glass.webp" alt="" />
+              <img class="cat__part" src="images/OrangeCat_webp/08_OrangeCat_nose.webp" alt="" />
+              <img class="cat__part cat__eyes cat__eyes--open"   src="images/OrangeCat_webp/09_OrangeCat_eyesOpen.webp" alt="" />
+              <img class="cat__part cat__eyes cat__eyes--closed" src="images/OrangeCat_webp/09_OrangeCat_eyesClosed.webp" alt="" />
+            </span></span>
+          </span>
+        </div>
+      </div>
+      <div class="hero__cursor-dot" aria-hidden="true"></div>
+    </header>
+
+  </div>
+  </div><!-- /.page-top -->
+
+  <div class="page-body">
+
+  <section class="credits" aria-label="Credits">
+    <div class="container credits__inner">
+      <span class="credits__label" data-bind="pages.creditsLabel">Credits</span>
+      <div class="credits__marquee">
+        <div class="credits__track">
+          <ul class="credits__list" data-bind="credits"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+
+    <section class="section section--reel" id="work" aria-labelledby="reel-heading">
+      <h2 class="section__title" id="reel-heading" data-bind="pages.reelHeading">VFX Reel</h2>
+      <span class="section__rule" aria-hidden="true"></span>
+      <div id="hero-reel"></div>
+      <div class="shotlist" id="hero-reel-shotlist" aria-label="Shotlist"></div>
+    </section>
+
+    <section class="section" aria-labelledby="grid-heading">
+      <h2 class="section__title" id="grid-heading" data-bind="pages.workHeading">Selected VFX Work</h2>
+      <span class="section__rule" aria-hidden="true"></span>
+      <p class="section__desc" data-bind="pages.workDesc">Breakdowns, sims, and integrations.</p>
+      <div class="gallery" id="gallery"></div>
+    </section>
+
+  </div>
+
+  </div><!-- /.page-body -->
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__cta">
+          <a href="about.html">
+            <span data-bind="pages.cta">Let's work together</span><span class="footer__cta-dot" aria-hidden="true"></span>
+          </a><br/>
+          <a data-bind="email" href="mailto:hello@fatcatrolling.com">hello@fatcatrolling.com</a>
+        </div>
+        <div>
+          <h3 class="footer__heading" data-bind="pages.elsewhereHeading">Elsewhere</h3>
+          <ul class="footer__list">
+            <li><a data-social="instagram" rel="me noopener" target="_blank">Instagram</a></li>
+            <li><a data-social="vimeo"     rel="me noopener" target="_blank">Vimeo</a></li>
+            <li><a data-social="linkedin"  rel="me noopener" target="_blank">LinkedIn</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="footer__heading" data-bind="pages.pagesHeading">Pages</h3>
+          <ul class="footer__list">
+            <li><a href="index.html" data-bind="pages.navHome">Home</a></li>
+            <li><a href="animation.html" data-bind="pages.navAnimation">Animation</a></li>
+            <li><a href="about.html" data-bind="pages.navAbout">About</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__copy">
+        <span>© <span id="year"></span> <span data-bind="copyright">Kim Nguyen · Fat Cat Rolling</span></span>
+        <span data-bind="pages.tagline">Hand-built, no cookies, no tracking.</span>
+      </div>
+    </div>
+  </footer>
+
+  <a class="corner-mascot hero-visible" href="#" aria-label="Back to top">
+    <span class="cat cat--corner" aria-hidden="true">
+      <span class="cat__body"><span class="cat__body-idle">
+        <img class="cat__part" src="images/OrangeCat_webp/01_OrangeCat_torso.webp" alt="" />
+        <img class="cat__part" src="images/OrangeCat_webp/02_OrangeCat_scarf.webp" alt="" />
+        <img class="cat__part" src="images/OrangeCat_webp/03_OrangeCat_arm.webp" alt="" />
+      </span></span>
+      <span class="cat__ears"><span class="cat__ears-idle">
+        <img class="cat__part" src="images/OrangeCat_webp/04_OrangeCat_ears.webp" alt="" />
+      </span></span>
+      <span class="cat__head"><span class="cat__head-idle">
+        <img class="cat__part" src="images/OrangeCat_webp/05_OrangeCat_head.webp" alt="" />
+        <img class="cat__part cat__mouth cat__mouth--closed" src="images/OrangeCat_webp/06_OrangeCat_mouthClosed.webp" alt="" />
+        <img class="cat__part cat__mouth cat__mouth--open"   src="images/OrangeCat_webp/06_OrangeCat_mouthOpen.webp" alt="" />
+        <img class="cat__part" src="images/OrangeCat_webp/07_OrangeCat_glass.webp" alt="" />
+        <img class="cat__part" src="images/OrangeCat_webp/08_OrangeCat_nose.webp" alt="" />
+        <img class="cat__part cat__eyes cat__eyes--open"   src="images/OrangeCat_webp/09_OrangeCat_eyesOpen.webp" alt="" />
+        <img class="cat__part cat__eyes cat__eyes--closed" src="images/OrangeCat_webp/09_OrangeCat_eyesClosed.webp" alt="" />
+      </span></span>
+    </span>
+  </a>
+
+  <div class="palette" role="group" aria-label="Color palette">
+    <button class="palette__swatch palette__swatch--warm"   data-palette="warm"   aria-label="Warm palette"   aria-pressed="true"></button>
+    <button class="palette__swatch palette__swatch--blue"   data-palette="blue"   aria-label="Blue palette"   aria-pressed="false"></button>
+    <button class="palette__swatch palette__swatch--purple" data-palette="purple" aria-label="Purple palette" aria-pressed="false"></button>
+  </div>
+  <div id="palette-live" class="sr-only" aria-live="polite" style="position:absolute;left:-9999px;"></div>
+
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
