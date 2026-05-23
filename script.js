@@ -253,6 +253,8 @@
   function openVideo(item, trigger) {
     const v = document.createElement('video');
     v.controls = true;
+    v.controlsList = 'nodownload';
+    v.disablePictureInPicture = true;
     v.loop = true;
     v.muted = true;
     v.setAttribute('playsinline', '');
@@ -493,15 +495,20 @@
       if (heroOver) { heroOver = false; heroBye(); }
     });
 
-    // 3-click wobble easter egg — geometric since the hero is pointer-events:none
+    // Tap/click easter egg — geometric since the hero is pointer-events:none.
+    // Uses both 'touchend' (iOS always fires it) and 'click' (desktop + Android).
+    // 350ms debounce prevents Android double-counting (fires both events per tap).
     let heroClicks = [];
-    window.addEventListener('click', (e) => {
+    let lastTapAt = 0;
+    function mascotTapAt(clientX, clientY) {
+      const now = Date.now();
+      if (now - lastTapAt < 350) return;   // drop the 'click' if 'touchend' just ran
+      lastTapAt = now;
       if (!isVisible) return;
       const r = mascot.getBoundingClientRect();
-      if (e.clientX < r.left || e.clientX > r.right ||
-          e.clientY < r.top  || e.clientY > r.bottom) return;
+      if (clientX < r.left || clientX > r.right ||
+          clientY < r.top  || clientY > r.bottom) return;
       heroHi();
-      const now = Date.now();
       heroClicks.push(now);
       heroClicks = heroClicks.filter((t) => now - t < 1500);
       if (heroClicks.length >= 3) {
@@ -509,7 +516,13 @@
         mascot.classList.add('wobble');
         setTimeout(() => mascot.classList.remove('wobble'), 700);
       }
-    });
+    }
+    window.addEventListener('click', (e) => mascotTapAt(e.clientX, e.clientY));
+    window.addEventListener('touchend', (e) => {
+      if (e.changedTouches && e.changedTouches[0]) {
+        mascotTapAt(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+      }
+    }, { passive: true });
 
     // Auto-blink every 4–8 s — hero and corner blink in sync
     function scheduleBlink() {
@@ -737,7 +750,7 @@
         ? it.src.replace(/^videos\/webm\//, 'videos/mp4/').replace(/\.webm$/i, '.mp4')
         : '';
       const media = isVideo
-        ? `<video ${it.poster ? `poster="${escapeAttr(it.poster)}"` : ''} muted loop playsinline preload="none"><source src="${escapeAttr(it.src)}" type="${it.src.endsWith('.webm') ? 'video/webm' : 'video/mp4'}">${
+        ? `<video ${it.poster ? `poster="${escapeAttr(it.poster)}"` : ''} muted loop playsinline preload="none" controlsList="nodownload" disablepictureinpicture><source src="${escapeAttr(it.src)}" type="${it.src.endsWith('.webm') ? 'video/webm' : 'video/mp4'}">${
             mp4Src !== it.src ? `<source src="${escapeAttr(mp4Src)}" type="video/mp4">` : ''
           }</video>`
         : `<img src="${escapeAttr(it.src)}" alt="${escapeAttr(it.alt || it.title || '')}" loading="lazy" decoding="async" />`;
