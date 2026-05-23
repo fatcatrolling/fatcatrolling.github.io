@@ -1,0 +1,23 @@
+# Planning / source files — never deployed
+Work History_for AI.csv
+Brief.txt
+
+# Bug recordings + asset sources — kept locally, not shipped
+bugs/
+images/OpenGraph/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+.vscode/
+.gstack/
+
+# Claude Code local config — never published
+.claude/
+
+# Design reference images (color authoring sources, not site assets)
+images/theme_*
+images/colorPalette_*

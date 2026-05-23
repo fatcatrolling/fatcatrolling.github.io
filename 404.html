@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="warm">
+<head>
+  <!-- Pretty-path router fires first — navigates away before any icon/font/CSS resolves -->
+  <script>
+    (function () {
+      var path = location.pathname.replace(/\/+$/, '').toLowerCase();
+      var map = {
+        '/animation':  '/animation.html',
+        '/vfx':        '/vfx.html',
+        '/about':      '/about.html'
+      };
+      if (map[path]) {
+        location.replace(map[path] + location.search + location.hash);
+      }
+    })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Taking a nap — Kim Nguyen | Fat Cat Rolling</title>
+  <meta name="description" content="This page is taking a nap. Head home for the portfolio." />
+  <meta name="robots" content="noindex" />
+
+  <link rel="icon" href="favicon.ico?v=4" sizes="32x32" />
+  <link rel="icon" type="image/png" href="favicon.png?v=4" sizes="64x64" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=block" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="404">
+
+  <div class="page-top">
+  <div class="container">
+
+    <nav class="topnav" aria-label="Primary">
+      <ul class="topnav__links">
+        <li><a href="index.html" data-text="Home">Home</a></li>
+        <li><a href="animation.html" data-text="Animation">Animation</a></li>
+        <li><a href="vfx.html" data-text="VFX">VFX</a></li>
+        <li><a href="about.html" data-text="About">About</a></li>
+      </ul>
+    </nav>
+
+  </div>
+  </div><!-- /.page-top -->
+
+  <div class="page-body">
+  <div class="container">
+
+    <section class="fourohfour">
+      <div class="sleeping-cat" role="img" aria-label="Sleeping cat">
+        <div class="sleeping-cat__head">
+          <div class="sleeping-cat__breath">
+            <img src="images/OrangeCat_webp/04_OrangeCat_ears.webp"        alt="" />
+            <img src="images/OrangeCat_webp/05_OrangeCat_head.webp"        alt="" />
+            <img src="images/OrangeCat_webp/06_OrangeCat_mouthClosed.webp" alt="" />
+            <img src="images/OrangeCat_webp/08_OrangeCat_nose.webp"        alt="" />
+            <img src="images/OrangeCat_webp/09_OrangeCat_eyesClosed.webp"  alt="" />
+          </div>
+        </div>
+        <span class="zsleep z1" aria-hidden="true">z</span>
+        <span class="zsleep z2" aria-hidden="true">z</span>
+        <span class="zsleep z3" aria-hidden="true">z</span>
+      </div>
+
+      <h1>Taking a nap.</h1>
+      <p>This page isn't where the work lives.</p>
+      <p><a href="index.html">← Back to the reel</a></p>
+    </section>
+
+  </div>
+  </div><!-- /.page-body -->
+
+  <div class="palette" role="group" aria-label="Color palette">
+    <button class="palette__swatch palette__swatch--warm"   data-palette="warm"   aria-label="Warm palette"   aria-pressed="true"></button>
+    <button class="palette__swatch palette__swatch--blue"   data-palette="blue"   aria-label="Blue palette"   aria-pressed="false"></button>
+    <button class="palette__swatch palette__swatch--purple" data-palette="purple" aria-label="Purple palette" aria-pressed="false"></button>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
