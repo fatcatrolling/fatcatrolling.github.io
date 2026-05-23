@@ -699,14 +699,38 @@ body::before {
 .shotlist__project { color: var(--fg); white-space: nowrap; }
 .shotlist__role    { font-style: italic; padding-left: 32px; } /* extra space between project ↔ role (on top of column-gap above) */
 
+/* Mobile: drop subgrid, flow as a single paragraph per row */
+@media (max-width: 639px) {
+  .shotlist { display: block; }
+  .shotlist__row {
+    display: block;
+    padding: 5px 0;
+    line-height: 1.65;
+    box-shadow: none;
+    background: none;
+  }
+  .shotlist__time,
+  .shotlist__project,
+  .shotlist__role    { display: inline; }
+  .shotlist__time    { padding-right: 8px; }
+  .shotlist__project { white-space: normal; }
+  .shotlist__role    { padding-left: 0; }
+  .shotlist__role::before { content: "\00a0—\00a0"; }
+  .shotlist__row:hover {
+    box-shadow: none;
+    background-color: transparent;
+    padding-left: 0;
+  }
+}
+
 /* ---------- Gallery — clean aligned grid + bounce-in ---------- */
 .gallery {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 80px;
 }
-@media (max-width: 900px) { .gallery { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
-@media (max-width: 560px) { .gallery { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .gallery { grid-template-columns: repeat(2, 1fr); gap: 24px; } }
+@media (max-width: 560px) { .gallery { gap: 14px; } }
 
 .project {
   display: block;
