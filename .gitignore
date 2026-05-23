@@ -21,3 +21,9 @@ desktop.ini
 # Design reference images (color authoring sources, not site assets)
 images/theme_*
 images/colorPalette_*
+
+# Internal-only docs and dev tools (kept local, not on GitHub)
+CLAUDE.md
+DNS-SETUP.md
+README.md
+validate.html
