@@ -52,7 +52,9 @@
   };
 
   const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const isTouch = window.matchMedia('(hover: none)').matches;
+  const isTouch = window.matchMedia('(hover: none)').matches
+              || window.matchMedia('(pointer: coarse)').matches
+              || 'ontouchstart' in window;
 
   /* ---------- 1. Palette switcher — 3 bold, Warm default ---------- */
   const PALETTES = ['warm', 'blue', 'purple'];
@@ -250,13 +252,26 @@
 
   function openVideo(item, trigger) {
     const v = document.createElement('video');
-    v.src = item.src;
-    if (item.poster) v.poster = item.poster;
     v.controls = true;
-    v.autoplay = true;
     v.loop = true;
-    v.playsInline = true;
+    v.muted = true;
+    v.setAttribute('playsinline', '');
+    v.setAttribute('webkit-playsinline', '');
+    v.preload = 'metadata';
+    if (item.poster) v.poster = item.poster;
+    // WebM first (Chrome/Firefox/Android — smaller file); MP4 fallback for iOS Safari
+    const mp4Src = item.src.replace(/^videos\/webm\//, 'videos/mp4/').replace(/\.webm$/i, '.mp4');
+    const s1 = document.createElement('source');
+    s1.src = item.src; s1.type = item.src.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+    v.appendChild(s1);
+    if (mp4Src !== item.src) {
+      const s2 = document.createElement('source');
+      s2.src = mp4Src; s2.type = 'video/mp4';
+      v.appendChild(s2);
+    }
+    v.autoplay = true;
     openLightbox(v, trigger, item.title);
+    v.play().catch(() => {});
   }
 
   /* ---------- 7. Wire reel + tile clicks ---------- */
@@ -289,6 +304,10 @@
     const dot = document.querySelector('.hero__cursor-dot');
     const hero = document.querySelector('.hero');
     if (!dot || !hero || prefersReduce || isTouch) return;
+    window.addEventListener('touchstart', () => {
+      dot.classList.remove('active');
+      dot.style.display = 'none';
+    }, { once: true, passive: true });
     hero.addEventListener('mouseenter', () => dot.classList.add('active'));
     hero.addEventListener('mouseleave', () => dot.classList.remove('active'));
     hero.addEventListener('mousemove', (e) => {
@@ -389,7 +408,7 @@
 
   /* ---------- 12. Hero mascot — cursor follow, blink, mouth-on-hover ---------- */
   function initHeroMascotTracking() {
-    if (prefersReduce || isTouch) return;
+    if (prefersReduce) return;
     const mascot = document.querySelector('.hero__mascot');
     if (!mascot) return;
 
@@ -481,6 +500,7 @@
       const r = mascot.getBoundingClientRect();
       if (e.clientX < r.left || e.clientX > r.right ||
           e.clientY < r.top  || e.clientY > r.bottom) return;
+      heroHi();
       const now = Date.now();
       heroClicks.push(now);
       heroClicks = heroClicks.filter((t) => now - t < 1500);
@@ -516,7 +536,14 @@
         corner.classList.remove('cat--talk');
       });
       corner.addEventListener('click', () => {
-        corner.classList.remove('cat--talk');
+        if (isTouch) {
+          corner.classList.add('cat--blink');
+          setTimeout(() => corner.classList.remove('cat--blink'), 220);
+          corner.classList.add('cat--talk');
+          setTimeout(() => corner.classList.remove('cat--talk'), 500);
+        } else {
+          corner.classList.remove('cat--talk');
+        }
       });
     }
   }
@@ -706,8 +733,13 @@
     if (!host || !items) return;
     host.innerHTML = items.map((it, i) => {
       const isVideo = it.type === 'video';
+      const mp4Src = isVideo
+        ? it.src.replace(/^videos\/webm\//, 'videos/mp4/').replace(/\.webm$/i, '.mp4')
+        : '';
       const media = isVideo
-        ? `<video src="${escapeAttr(it.src)}" ${it.poster ? `poster="${escapeAttr(it.poster)}"` : ''} muted loop playsinline preload="none"></video>`
+        ? `<video ${it.poster ? `poster="${escapeAttr(it.poster)}"` : ''} muted loop playsinline preload="none"><source src="${escapeAttr(it.src)}" type="${it.src.endsWith('.webm') ? 'video/webm' : 'video/mp4'}">${
+            mp4Src !== it.src ? `<source src="${escapeAttr(mp4Src)}" type="video/mp4">` : ''
+          }</video>`
         : `<img src="${escapeAttr(it.src)}" alt="${escapeAttr(it.alt || it.title || '')}" loading="lazy" decoding="async" />`;
       return `
       <button class="project"
