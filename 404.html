@@ -5,10 +5,12 @@
   <script>
     (function () {
       var path = location.pathname.replace(/\/+$/, '').toLowerCase();
+      // Backward-compat: redirect old .html URLs to clean URLs
       var map = {
-        '/animation':  '/animation.html',
-        '/vfx':        '/vfx.html',
-        '/about':      '/about.html'
+        '/animation.html': '/animation',
+        '/vfx.html':       '/vfx',
+        '/about.html':     '/about',
+        '/index.html':     '/'
       };
       if (map[path]) {
         location.replace(map[path] + location.search + location.hash);
@@ -36,10 +38,10 @@
 
     <nav class="topnav" aria-label="Primary">
       <ul class="topnav__links">
-        <li><a href="index.html" data-text="Home">Home</a></li>
-        <li><a href="animation.html" data-text="Animation">Animation</a></li>
-        <li><a href="vfx.html" data-text="VFX">VFX</a></li>
-        <li><a href="about.html" data-text="About">About</a></li>
+        <li><a href="/" data-text="Home">Home</a></li>
+        <li><a href="/animation" data-text="Animation">Animation</a></li>
+        <li><a href="/vfx" data-text="VFX">VFX</a></li>
+        <li><a href="/about" data-text="About">About</a></li>
       </ul>
     </nav>
 
@@ -67,7 +69,7 @@
 
       <h1>Taking a nap.</h1>
       <p>This page isn't where the work lives.</p>
-      <p><a href="index.html">← Back to the reel</a></p>
+      <p><a href="/">← Back to the reel</a></p>
     </section>
 
   </div>
