@@ -12,7 +12,7 @@ html, body { margin: 0; padding: 0; }
    navigation (the "all 4 tabs glitch" bug). */
 html { scrollbar-gutter: stable; background: var(--bg); }
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-body, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
   font-feature-settings: 'ss01', 'cv11';
   background: var(--bg);
   min-height: 100vh;
@@ -556,7 +556,7 @@ body::before {
 .section--reel  { padding: 48px 0 96px; }
 
 .section__title {
-  font-family: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-display, 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
   font-style: italic;
   font-weight: 600;
   font-size: clamp(30px, 5.5vw, 64px);
@@ -755,14 +755,23 @@ body::before {
   transition-delay: calc(var(--delay, 0) * 70ms);
 }
 .project__image { position: relative; }
+/* The gallery no longer uses the separate .shadow div (kept only for hero
+   images). Hiding it here avoids a doubled/misaligned shadow. */
+.project__image .shadow { display: none; }
 .media {
   position: relative;
   aspect-ratio: 1 / 1;
   border-radius: 16px;
   overflow: hidden;
-  background: var(--bg);
-  will-change: transform;
-  transition: transform 360ms cubic-bezier(.34, 1.56, .64, 1), background-color 260ms ease;
+  /* transparent so a Snapcode's transparent corners show the page through them */
+  background: transparent;
+  /* Alpha-aware drop shadow ON the tile itself: it follows the actual artwork
+     (the rounded Snapcode, ignoring its transparent corners; or the rounded
+     rectangle of a full-frame still), so the shadow hugs the real shape with no
+     corner "puncture". NOTE: no `will-change` here — it promotes a layer that
+     stops drop-shadow from rendering. */
+  filter: drop-shadow(0 8px 11px rgba(0,0,0,0.40));
+  transition: transform 360ms cubic-bezier(.34, 1.56, .64, 1), filter 360ms ease;
 }
 .media img, .media video {
   width: 100%; height: 100%;
@@ -776,7 +785,20 @@ body::before {
   border-radius: 12px;
   z-index: -1;
 }
-.project:hover .media { transform: scale(1.035); }
+.project:hover .media { transform: scale(1.035); filter: drop-shadow(0 14px 18px rgba(0,0,0,0.48)); }
+
+/* ---------- Free-form canvas sections ---------- */
+.canvas { padding: 32px 0; }
+.canvas__grid { display: grid; }
+.canvas__block { min-width: 0; min-height: 0; overflow: hidden; }
+.canvas__h { font-family: var(--font-display, 'Bricolage Grotesque', sans-serif); font-style: italic; font-weight: 600; font-size: clamp(24px, 4vw, 48px); line-height: 1.1; margin: 0; color: var(--fg); }
+.canvas__text { color: var(--fg); line-height: 1.5; }
+.canvas__img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: block; }
+.canvas__ph { display: grid; place-items: center; height: 100%; min-height: 80px; background: var(--card); color: var(--muted); border-radius: 12px; font-size: 13px; }
+@media (max-width: 640px) {
+  .canvas__grid { grid-template-columns: 1fr !important; grid-auto-rows: auto !important; }
+  .canvas__block { grid-column: 1 !important; grid-row: auto !important; min-height: 0; }
+}
 .project:focus-visible .media { transform: scale(1.025); }
 
 /* ---------- About page specifics ---------- */

@@ -43,7 +43,9 @@
     document.addEventListener('DOMContentLoaded', () => document.body.prepend(banner));
   }
 
-  const DATA = window.SITE_DATA || {
+  // `let` (not const) so the editor's live-preview hook can swap in a draft
+  // dataset and re-render without a page reload. Normal visitors never change it.
+  let DATA = window.SITE_DATA || {
     profile: { name: 'Kim Nguyen', brand: 'Fat Cat Rolling', roles: [], socials: {}, credits: [], heroImages: [] },
     reels: {},
     gallery: { home: [], animation: [], vfx: [] },
@@ -56,8 +58,59 @@
               || window.matchMedia('(pointer: coarse)').matches
               || 'ontouchstart' in window;
 
-  /* ---------- 1. Palette switcher — 3 bold, Warm default ---------- */
-  const PALETTES = ['warm', 'blue', 'purple'];
+  /* ---------- 1. Palette switcher — themes come from data ---------- */
+  let PALETTES = ['warm', 'blue', 'purple'];
+
+  /* Inject themes + fonts from data.js. styles.css still holds the 3 default
+     palettes (so first paint never flashes); this overrides/extends them from
+     data so the editor can recolor them, add new ones, and change fonts. */
+  function applyThemesAndFonts() {
+    const d = window.SITE_DATA || {};
+    const themes = Array.isArray(d.themes) ? d.themes : [];
+    if (themes.length) {
+      PALETTES = themes.map((t) => t.id);
+      let css = '';
+      themes.forEach((t) => {
+        const toks = t.tokens || {};
+        const decls = Object.keys(toks).map((k) => '--' + k + ':' + toks[k] + ';').join('');
+        css += ':root[data-palette="' + t.id + '"]{' + decls + '}\n';
+      });
+      let styleEl = document.getElementById('fcr-themes');
+      if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'fcr-themes'; document.head.appendChild(styleEl); }
+      styleEl.textContent = css;
+      // Make sure every theme has a clickable swatch (keeps the static 3, adds new)
+      const palette = document.querySelector('.palette');
+      if (palette) {
+        themes.forEach((t) => {
+          if (!palette.querySelector('.palette__swatch[data-palette="' + t.id + '"]')) {
+            const b = document.createElement('button');
+            b.className = 'palette__swatch';
+            b.dataset.palette = t.id;
+            b.setAttribute('aria-label', (t.name || t.id) + ' palette');
+            b.setAttribute('aria-pressed', 'false');
+            b.style.background = t.swatch || (t.tokens && t.tokens['bg-top']) || '#888';
+            b.addEventListener('click', () => setPalette(t.id, true));
+            palette.appendChild(b);
+          }
+        });
+      }
+    }
+    const ty = d.typography || {};
+    const root = document.documentElement.style;
+    if (ty.headingFont) root.setProperty('--font-display', "'" + ty.headingFont + "', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif");
+    if (ty.bodyFont) root.setProperty('--font-body', "'" + ty.bodyFont + "', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif");
+    const fams = [];
+    if (ty.headingFont) fams.push(ty.headingFont);
+    if (ty.bodyFont && ty.bodyFont !== ty.headingFont) fams.push(ty.bodyFont);
+    if (fams.length) {
+      const href = 'https://fonts.googleapis.com/css2?' +
+        fams.map((f) => 'family=' + encodeURIComponent(f).replace(/%20/g, '+') + ':wght@400;500;600;700;800;900').join('&') +
+        '&display=swap';
+      let link = document.getElementById('fcr-fonts');
+      if (!link) { link = document.createElement('link'); link.id = 'fcr-fonts'; link.rel = 'stylesheet'; document.head.appendChild(link); }
+      if (link.getAttribute('href') !== href) link.setAttribute('href', href);
+    }
+  }
 
   function setPalette(name, animate) {
     if (!PALETTES.includes(name)) name = 'warm';
@@ -337,56 +390,53 @@
   }
 
   /* ---------- 10. Credits spotlight — cycles one name at a time with a stop-motion jitter ---------- */
+  let creditsTimer = null;
   function initCreditsSpotlight() {
     const list = document.querySelector('.credits__list');
-    if (!list) return;
-    const items = Array.from(list.querySelectorAll('li'));
-    if (items.length < 2) return;
-    if (prefersReduce) return;
+    if (!list || prefersReduce) return;
+    // Safe to re-run (e.g. after a live re-render): clear any prior timer.
+    if (creditsTimer) { clearInterval(creditsTimer); creditsTimer = null; }
 
     let idx = -1;
-    let timerId = null;
     let hovering = false;
+    // Re-query each tick so the cycle keeps working even if the <li>s get
+    // re-rendered underneath us (the editor's live preview replaces them).
+    const items = () => Array.from(list.querySelectorAll('li'));
 
     function setSpotlight(newIdx) {
-      const prev = items[idx];
-      if (prev) prev.classList.remove('is-spotlight');
-      idx = newIdx;
-      const next = items[idx];
-      next.classList.remove('is-spotlight');
+      const its = items();
+      if (its.length < 2) return;
+      its.forEach((li) => li.classList.remove('is-spotlight'));
+      idx = ((newIdx % its.length) + its.length) % its.length;
+      const next = its[idx];
+      if (!next) return;
       void next.offsetWidth;
       next.classList.add('is-spotlight');
     }
-
     function tick() {
       if (hovering) return;
-      setSpotlight((idx + 1) % items.length);
+      if (items().length < 2) return;
+      setSpotlight(idx + 1);
     }
 
-    function start() { if (timerId) return; tick(); timerId = setInterval(tick, 2000); }
-    function stop()  { if (!timerId) return; clearInterval(timerId); timerId = null; }
-
-    // Hover an individual name → spotlight it immediately, pause auto-cycle
-    items.forEach((item, i) => {
-      item.addEventListener('mouseenter', () => {
-        hovering = true;
-        stop();
-        if (idx !== i) setSpotlight(i);
+    // Delegated hover on the persistent list element (survives re-renders).
+    if (!list.dataset.spotlightWired) {
+      list.addEventListener('mouseover', (e) => {
+        const li = e.target.closest('li');
+        if (li && list.contains(li)) {
+          hovering = true;
+          const i = items().indexOf(li);
+          if (i >= 0) setSpotlight(i);
+        }
       });
-    });
+      list.addEventListener('mouseout', (e) => {
+        if (!list.contains(e.relatedTarget)) hovering = false;
+      });
+      list.dataset.spotlightWired = '1';
+    }
 
-    // Leaving the whole list → resume cycle from current position
-    list.addEventListener('mouseleave', () => {
-      hovering = false;
-      start();
-    });
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) stop();
-      else if (!hovering) start();
-    });
-
-    start();
+    creditsTimer = setInterval(tick, 2000);
+    tick();
   }
 
   /* ---------- 11. Mascot easter egg — both variants, 3 clicks, wobble ---------- */
@@ -814,30 +864,102 @@
   }
   function escapeAttr(s) { return escapeHtml(s); }
 
-  /* ---------- Boot ---------- */
-  function boot() {
-    initPaletteSwitcher();
-    renderProfile();
-
-    const pageKey = document.body.dataset.page;
-    renderPageCopy(pageKey);
-
-    if (pageKey === 'home') {
-      renderReel('tech', '#hero-reel');
-      renderGallery('home', '#gallery');
-    } else if (pageKey === 'animation') {
-      renderReel('animation', '#hero-reel');
-      renderGallery('animation', '#gallery');
-    } else if (pageKey === 'vfx') {
-      renderReel('vfx', '#hero-reel');
-      renderGallery('vfx', '#gallery');
-    } else if (pageKey === 'about') {
-      renderAbout();
+  /* ---------- Navigation (data-driven so add/remove-page updates every page) ---------- */
+  function renderNav(pageKey) {
+    const pages = DATA.navPages;
+    if (!Array.isArray(pages) || !pages.length) return; // keep static nav as fallback
+    const top = document.querySelector('.topnav__links');
+    if (top) {
+      top.innerHTML = pages.map((p) => {
+        const cur = p.page === pageKey ? ' aria-current="page"' : '';
+        return '<li><a href="' + escapeAttr(p.slug) + '" data-text="' + escapeAttr(p.label) + '"' + cur + '>' + escapeHtml(p.label) + '</a></li>';
+      }).join('');
     }
+    // The footer page-list is the .footer__list that is NOT the socials list.
+    document.querySelectorAll('.footer__list').forEach((ul) => {
+      if (ul.querySelector('[data-social]')) return;
+      ul.innerHTML = pages.filter((p) => p.page !== pageKey).map((p) =>
+        '<li><a href="' + escapeAttr(p.slug) + '">' + escapeHtml(p.label) + '</a></li>').join('');
+    });
+  }
 
+  /* ---------- Render the data-driven content (re-runnable) ---------- */
+  function renderFromData() {
+    renderProfile();
+    const pageKey = document.body.dataset.page;
+    renderNav(pageKey);
+    renderPageCopy(pageKey);
+    if (pageKey === 'about') {
+      renderAbout();
+    } else {
+      // Reel/gallery pages render by convention: reels[pageKey] (Home uses
+      // 'tech') + gallery[pageKey]. This means a NEW page added in the editor
+      // renders with no code change — it just needs reels[slug]/gallery[slug].
+      const reelKey = (pageKey === 'home') ? 'tech' : pageKey;
+      if (document.querySelector('#hero-reel') && DATA.reels && DATA.reels[reelKey]) {
+        renderReel(reelKey, '#hero-reel');
+      }
+      if (document.querySelector('#gallery') && DATA.gallery && DATA.gallery[pageKey]) {
+        renderGallery(pageKey, '#gallery');
+      }
+    }
+    renderCanvases(pageKey);
     initReelButtons();
     initTileButtons();
     initVideoHoverPreview();
+  }
+
+  /* ---------- Free-form "canvas" sections (drag/resize layout) ----------
+     Blocks are placed on a 12-col grid (desktop). On mobile they stack in
+     order automatically (CSS media query), so a layout can never become
+     unreadable on a phone. */
+  function renderCanvases(pageKey) {
+    const cv = DATA.canvases && DATA.canvases[pageKey];
+    let host = document.getElementById('canvas-sections');
+    if (!cv || !cv.blocks || !cv.blocks.length) { if (host) host.innerHTML = ''; return; }
+    const pb = document.querySelector('.page-body .container') || document.querySelector('.page-body');
+    if (!pb) return;
+    if (!host) { host = document.createElement('div'); host.id = 'canvas-sections'; pb.appendChild(host); }
+    const cols = (cv.grid && cv.grid.cols) || 12;
+    const rowH = (cv.grid && cv.grid.rowHeight) || 48;
+    const gap = (cv.grid && cv.grid.gap) || 12;
+    const blocks = cv.blocks.map((b) => {
+      const d = b.desktop || { c: 1, r: 1, w: cols, h: 2 };
+      const style = 'grid-column:' + d.c + '/span ' + d.w + ';grid-row:' + d.r + '/span ' + d.h + ';';
+      let inner = '';
+      if (b.type === 'heading') inner = '<h2 class="canvas__h" style="text-align:' + (b.align || 'left') + '">' + escapeHtml(b.content || '') + '</h2>';
+      else if (b.type === 'text') inner = '<div class="canvas__text" style="text-align:' + (b.align || 'left') + '">' + escapeHtml(b.content || '').replace(/\n/g, '<br>') + '</div>';
+      else if (b.type === 'image') inner = b.src ? '<img class="canvas__img" src="' + escapeAttr(b.src) + '" alt="' + escapeAttr(b.alt || '') + '">' : '<div class="canvas__ph">image</div>';
+      return '<div class="canvas__block" style="' + style + '">' + inner + '</div>';
+    }).join('');
+    host.innerHTML = '<section class="canvas section"><div class="canvas__grid" style="grid-template-columns:repeat(' + cols + ',minmax(0,1fr));gap:' + gap + 'px;grid-auto-rows:' + rowH + 'px">' + blocks + '</div></section>';
+  }
+
+  /* ---------- Editor live-preview hook ----------
+     The editor (in _editor/) posts a draft dataset so Kim sees edits before
+     saving. Guarded by the __fcrDraft flag — no normal visitor ever sends this,
+     so this is a no-op on the live site. */
+  window.addEventListener('message', function (e) {
+    const d = e.data;
+    if (!d || d.__fcrDraft !== true || !d.data) return;
+    DATA = d.data;
+    window.SITE_DATA = d.data;
+    applyThemesAndFonts();
+    if (d.palette) setPalette(d.palette, false); // editor previews the theme being edited
+    renderFromData();
+    // Skip the scroll-reveal/cascade animations in preview so re-rendered tiles
+    // are immediately visible instead of waiting on the IntersectionObserver.
+    document.querySelectorAll('.project').forEach((t) => t.classList.add('inview'));
+    document.querySelectorAll('.section__rule').forEach((r) => r.classList.add('in-view'));
+  });
+
+  /* ---------- Boot ---------- */
+  function boot() {
+    applyThemesAndFonts();
+    initPaletteSwitcher();
+
+    const pageKey = document.body.dataset.page;
+    renderFromData();
 
     // One-shot entrance motion must not play while hidden during prerender —
     // defer it until the page is actually shown so the cascade/bounce is seen.
