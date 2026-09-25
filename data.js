@@ -299,10 +299,10 @@ try {
           "role": "3D / Bitmoji Technical Animator",
           "studio": "Snap Inc.",
           "location": "Santa Monica, CA",
-          "years": "Apr 2022 – Present",
+          "years": "Apr 2022 – Jul 2026",
           "highlights": [
             "Produce Bitmoji Fashion Lenses end to end — 3D content generation, rigging, animation, QA, and deployment to the Snapchat app.",
-            "Built a customized ComfyUI pipeline for AI-assisted Bitmoji fashion asset creation; documented workflow for team adoption.",
+            "Built a customized ComfyUI pipeline for AI-assisted Bitmoji fashion asset creation, documented workflow for team adoption.",
             "Support QA and bug triage for avatar and lens experiences; continuously optimize the animation production pipeline."
           ],
           "skills": "Lens Studio, ComfyUI, Maya, rigging, 3D animation, AI pipeline, QA/bug triage, pipeline optimization"
@@ -338,7 +338,18 @@ try {
           "highlights": [
             "Animated character lip-sync for the series Freak Angels and integrated it seamlessly into existing 2D animation footage."
           ],
-          "skills": "After Effects, lip-sync animation, 2D compositing, 2D animation integration"
+          "skills": "After Effects, lip-sync animation, set clean up, compositing, animation integration"
+        },
+        {
+          "role": "VFX Artist",
+          "studio": "Bix Pix Entertainment",
+          "location": "Sun Valley, CA",
+          "years": "May 2017 – Dec 2017",
+          "highlights": [
+            "Executed precision compositing, high-level rig removal, set extensions, and color correction to preserve the tactile stop-motion aesthetic of the award-winning series Tumble Leaf at Bix Pix Entertainment.",
+            "Collaborated closely with the studio's creative team to enhance overall visual storytelling and maintain high production standards."
+          ],
+          "skills": "After Effects, Blender, 2D/3D tracking, compositing, keying, rotoscoping, lip-sync, set extension, rig removal, color correction"
         }
       ]
     },
@@ -382,56 +393,150 @@ try {
       }
     },
     "navPages": [
-      { "slug": "/", "page": "home", "label": "Home" },
-      { "slug": "/animation", "page": "animation", "label": "Animation" },
-      { "slug": "/vfx", "page": "vfx", "label": "VFX" },
-      { "slug": "/about", "page": "about", "label": "About" }
+      {
+        "slug": "/",
+        "page": "home",
+        "label": "Home"
+      },
+      {
+        "slug": "/animation",
+        "page": "animation",
+        "label": "Animation"
+      },
+      {
+        "slug": "/vfx",
+        "page": "vfx",
+        "label": "VFX"
+      },
+      {
+        "slug": "/about",
+        "page": "about",
+        "label": "About"
+      }
     ],
     "typography": {
       "headingFont": "Bricolage Grotesque",
-      "bodyFont": "Inter"
+      "bodyFont": "Inter",
+      "heroItalic": false,
+      "heroBold": true,
+      "heroScale": 1,
+      "headingItalic": true,
+      "bodyItalic": false
     },
     "themes": [
       {
         "id": "warm",
         "name": "Warm",
-        "swatch": "#5C7019",
+        "swatch": "#C04838",
         "tokens": {
-          "bg": "#EDDFC0", "fg": "#2E3C1C", "muted": "#7A6A5A", "card": "#D6C8A4",
-          "accent": "#C04838", "accent-secondary": "#445212", "accent-ink": "#ffffff",
-          "focus-ring": "#C04838", "grain-opacity": "0.05", "vignette-opacity": "0.065",
-          "bg-top": "#5C7019", "fg-top": "#FAFBD0", "muted-top": "rgba(250,251,208,0.65)",
-          "bg-footer": "#DE5A3D", "fg-footer": "#FAFBD0", "muted-footer": "rgba(250,251,208,0.7)",
-          "accent-footer": "#1F5C1A", "hover-footer": "#FFE600", "accent-top": "#F2CB30"
+          "bg": "#EDDFC0",
+          "fg": "#2E3C1C",
+          "muted": "#7A6A5A",
+          "card": "#D6C8A4",
+          "accent": "#C04838",
+          "accent-secondary": "#445212",
+          "accent-ink": "#ffffff",
+          "focus-ring": "#C04838",
+          "grain-opacity": "0.05",
+          "vignette-opacity": "0.065",
+          "bg-top": "#5C7019",
+          "fg-top": "#FAFBD0",
+          "muted-top": "rgba(250,251,208,0.65)",
+          "bg-footer": "#DE5A3D",
+          "fg-footer": "#FAFBD0",
+          "muted-footer": "rgba(250,251,208,0.7)",
+          "accent-footer": "#1F5C1A",
+          "hover-footer": "#FFE600",
+          "accent-top": "#F2CB30"
         }
       },
       {
         "id": "blue",
         "name": "Blue",
-        "swatch": "#467775",
+        "swatch": "#2E6FA8",
         "tokens": {
-          "bg": "#103E5F", "fg": "#D3E7EC", "muted": "#7AAAB8", "card": "#16496F",
-          "accent": "#F2CB30", "accent-secondary": "#6F9ABF", "accent-ink": "#11202b",
-          "focus-ring": "#F2CB30", "grain-opacity": "0.025", "vignette-opacity": "0.06",
-          "bg-top": "#467775", "fg-top": "#D3E7EC", "muted-top": "rgba(211,231,236,0.65)",
-          "bg-footer": "#F3CF2C", "fg-footer": "#103E5F", "muted-footer": "rgba(16,62,95,0.65)",
-          "accent-footer": "#467775", "hover-footer": "#FF6600", "accent-top": "#F2CB30"
+          "bg": "#103E5F",
+          "fg": "#D3E7EC",
+          "muted": "#7AAAB8",
+          "card": "#16496F",
+          "accent": "#F2CB30",
+          "accent-secondary": "#6F9ABF",
+          "accent-ink": "#11202b",
+          "focus-ring": "#F2CB30",
+          "grain-opacity": "0.025",
+          "vignette-opacity": "0.06",
+          "bg-top": "#467775",
+          "fg-top": "#D3E7EC",
+          "muted-top": "rgba(211,231,236,0.65)",
+          "bg-footer": "#F3CF2C",
+          "fg-footer": "#103E5F",
+          "muted-footer": "rgba(16,62,95,0.65)",
+          "accent-footer": "#467775",
+          "hover-footer": "#FF6600",
+          "accent-top": "#F2CB30"
         }
       },
       {
         "id": "purple",
         "name": "Purple",
-        "swatch": "#866EB2",
+        "swatch": "#7E5BD0",
         "tokens": {
-          "bg": "#322B61", "fg": "#B6BCE0", "muted": "#8882B0", "card": "#42316E",
-          "accent": "#E8635E", "accent-secondary": "#DC9A77", "accent-ink": "#ffffff",
-          "focus-ring": "#E8635E", "grain-opacity": "0.025", "vignette-opacity": "0.06",
-          "bg-top": "#866EB2", "fg-top": "#FFFFFF", "muted-top": "rgba(255,255,255,0.7)",
-          "bg-footer": "#E0986F", "fg-footer": "#322B61", "muted-footer": "rgba(50,43,97,0.65)",
-          "accent-footer": "#103E5F", "hover-footer": "#FF3333", "accent-top": "#1E1A3A"
+          "bg": "#322B61",
+          "fg": "#B6BCE0",
+          "muted": "#8882B0",
+          "card": "#42316E",
+          "accent": "#E8635E",
+          "accent-secondary": "#DC9A77",
+          "accent-ink": "#ffffff",
+          "focus-ring": "#E8635E",
+          "grain-opacity": "0.025",
+          "vignette-opacity": "0.06",
+          "bg-top": "#866EB2",
+          "fg-top": "#FFFFFF",
+          "muted-top": "rgba(255,255,255,0.7)",
+          "bg-footer": "#E0986F",
+          "fg-footer": "#322B61",
+          "muted-footer": "rgba(50,43,97,0.65)",
+          "accent-footer": "#103E5F",
+          "hover-footer": "#FF3333",
+          "accent-top": "#1E1A3A"
         }
       }
-    ]
+    ],
+    "canvases": {
+      "test": [
+        {
+          "id": "bdckmlq",
+          "title": "",
+          "where": "after-gallery",
+          "grid": {
+            "cols": 12,
+            "rowHeight": 48,
+            "gap": 12
+          },
+          "blocks": [
+            {
+              "id": "bwfzdw4",
+              "align": "left",
+              "src": "",
+              "poster": "",
+              "alt": "",
+              "content": "Some text…",
+              "provider": "",
+              "videoId": "",
+              "title": "",
+              "type": "text",
+              "desktop": {
+                "c": 1,
+                "r": 1,
+                "w": 12,
+                "h": 2
+              }
+            }
+          ]
+        }
+      ]
+    }
   };
 } catch (e) {
   /* If this file ever has a syntax error, the site shows a banner

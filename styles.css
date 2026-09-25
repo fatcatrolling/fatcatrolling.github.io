@@ -14,6 +14,10 @@ html { scrollbar-gutter: stable; background: var(--bg); }
 body {
   font-family: var(--font-body, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
   font-feature-settings: 'ss01', 'cv11';
+  /* Global typography controls (set from data.typography) */
+  font-size: calc(16px * var(--body-scale, 1));
+  font-weight: var(--body-weight, 400);
+  font-style: var(--body-style, normal);
   background: var(--bg);
   min-height: 100vh;
   min-height: 100dvh;
@@ -261,8 +265,9 @@ body::before {
 
 /* Name — oversized, ALWAYS one line */
 .hero__name {
-  font-size: clamp(30px, 12vw, 142px);
-  font-weight: 900;
+  font-size: calc(clamp(30px, 12vw, 142px) * var(--hero-scale, 1));
+  font-weight: var(--hero-weight, 900);
+  font-style: var(--hero-style, normal);
   line-height: 0.95;
   letter-spacing: -0.045em;
   white-space: nowrap;
@@ -276,7 +281,7 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 15px;
+  font-size: calc(15px * var(--body-scale, 1));
   color: var(--muted);
   max-width: 60ch;
 }
@@ -520,7 +525,7 @@ body::before {
   display: flex; flex-wrap: wrap;
   gap: 6px 72px;
   list-style: none; margin: 0; padding: 0;
-  font-size: clamp(13px, 1.3vw, 16px);
+  font-size: calc(clamp(13px, 1.3vw, 16px) * var(--body-scale, 1));
   font-weight: 600; letter-spacing: 0.01em;
   color: var(--muted);
   align-items: center;
@@ -557,9 +562,9 @@ body::before {
 
 .section__title {
   font-family: var(--font-display, 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-  font-style: italic;
-  font-weight: 600;
-  font-size: clamp(30px, 5.5vw, 64px);
+  font-style: var(--heading-style, italic);
+  font-weight: var(--heading-weight, 600);
+  font-size: calc(clamp(30px, 5.5vw, 64px) * var(--heading-scale, 1));
   letter-spacing: -0.03em;
   line-height: 1.02;
   margin: 0;
@@ -579,7 +584,7 @@ body::before {
   transform: scaleX(1);
 }
 .section__desc {
-  font-size: 16px;
+  font-size: calc(16px * var(--body-scale, 1));
   color: var(--muted);
   margin: 0 0 40px;
   max-width: 60ch;
@@ -677,7 +682,7 @@ body::before {
   column-gap: 16px;            /* gap between time ↔ project (and base gap before role) */
   grid-template-columns: 60px 1fr;
   margin-top: 24px;
-  font-size: 14px;
+  font-size: calc(14px * var(--body-scale, 1));
   color: var(--muted);
 }
 @media (min-width: 640px) {
@@ -795,6 +800,10 @@ body::before {
 .canvas__text { color: var(--fg); line-height: 1.5; }
 .canvas__img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: block; }
 .canvas__ph { display: grid; place-items: center; height: 100%; min-height: 80px; background: var(--card); color: var(--muted); border-radius: 12px; font-size: 13px; }
+.canvas__video { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: block; background: #000; }
+.canvas__reel { width: 100%; height: 100%; }
+.canvas__reel .reel__poster { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+.canvas-host { display: block; }
 @media (max-width: 640px) {
   .canvas__grid { grid-template-columns: 1fr !important; grid-auto-rows: auto !important; }
   .canvas__block { grid-column: 1 !important; grid-row: auto !important; min-height: 0; }
@@ -803,7 +812,7 @@ body::before {
 
 /* ---------- About page specifics ---------- */
 .about-lead {
-  font-size: clamp(22px, 3.5vw, 36px);
+  font-size: calc(clamp(22px, 3.5vw, 36px) * var(--body-scale, 1));
   line-height: 1.3;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -811,7 +820,7 @@ body::before {
   margin: 0 0 48px;
 }
 .about-body {
-  font-size: 18px;
+  font-size: calc(18px * var(--body-scale, 1));
   line-height: 1.6;
   max-width: 62ch;
   color: var(--fg);
@@ -832,19 +841,19 @@ body::before {
   flex-wrap: wrap;
 }
 .experience__role   { font-weight: 600; }
-.experience__studio { color: var(--muted); font-size: 14px; margin-top: 2px; }
-.experience__years  { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 14px; white-space: nowrap; flex-shrink: 0; }
+.experience__studio { color: var(--muted); font-size: calc(14px * var(--body-scale, 1)); margin-top: 2px; }
+.experience__years  { color: var(--muted); font-variant-numeric: tabular-nums; font-size: calc(14px * var(--body-scale, 1)); white-space: nowrap; flex-shrink: 0; }
 .experience__highlights {
   margin: 0; padding: 0 0 0 1.2em;
   display: flex; flex-direction: column; gap: 6px;
 }
 .experience__highlights li {
-  font-size: 15px;
+  font-size: calc(15px * var(--body-scale, 1));
   line-height: 1.55;
   color: var(--fg);
 }
 .experience__skills {
-  font-size: 13px;
+  font-size: calc(13px * var(--body-scale, 1));
   color: var(--muted);
   line-height: 1.5;
 }
@@ -915,7 +924,7 @@ body::before {
 }
 .footer__list {
   list-style: none; margin: 0; padding: 0;
-  display: grid; gap: 8px; font-size: 14px;
+  display: grid; gap: 8px; font-size: calc(14px * var(--body-scale, 1));
 }
 .footer__list a {
   text-decoration: none; color: var(--fg);
@@ -927,7 +936,7 @@ body::before {
 .footer__copy {
   margin-top: 64px;
   display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap;
-  font-size: 12px; color: var(--muted);
+  font-size: calc(12px * var(--body-scale, 1)); color: var(--muted);
 }
 
 /* ---------- Palette switcher (3 swatches) ---------- */

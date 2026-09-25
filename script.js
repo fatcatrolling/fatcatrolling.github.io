@@ -78,20 +78,22 @@
       let styleEl = document.getElementById('fcr-themes');
       if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'fcr-themes'; document.head.appendChild(styleEl); }
       styleEl.textContent = css;
-      // Make sure every theme has a clickable swatch (keeps the static 3, adds new)
+      // Make sure every theme has a clickable swatch, and the swatch colour comes
+      // from data (so the editor can recolour it and new themes get a button).
       const palette = document.querySelector('.palette');
       if (palette) {
         themes.forEach((t) => {
-          if (!palette.querySelector('.palette__swatch[data-palette="' + t.id + '"]')) {
-            const b = document.createElement('button');
+          let b = palette.querySelector('.palette__swatch[data-palette="' + t.id + '"]');
+          if (!b) {
+            b = document.createElement('button');
             b.className = 'palette__swatch';
             b.dataset.palette = t.id;
             b.setAttribute('aria-label', (t.name || t.id) + ' palette');
             b.setAttribute('aria-pressed', 'false');
-            b.style.background = t.swatch || (t.tokens && t.tokens['bg-top']) || '#888';
             b.addEventListener('click', () => setPalette(t.id, true));
             palette.appendChild(b);
           }
+          if (t.swatch) b.style.background = t.swatch; // data is the source of truth
         });
       }
     }
@@ -99,6 +101,16 @@
     const root = document.documentElement.style;
     if (ty.headingFont) root.setProperty('--font-display', "'" + ty.headingFont + "', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif");
     if (ty.bodyFont) root.setProperty('--font-body', "'" + ty.bodyFont + "', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif");
+    // Global weight / style / size for hero name, headings, and body
+    root.setProperty('--hero-weight', ty.heroBold === false ? '700' : '900');
+    root.setProperty('--hero-style', ty.heroItalic ? 'italic' : 'normal');
+    root.setProperty('--hero-scale', String(ty.heroScale || 1));
+    root.setProperty('--heading-weight', ty.headingBold ? '800' : '600');
+    root.setProperty('--heading-style', ty.headingItalic === false ? 'normal' : 'italic');
+    root.setProperty('--heading-scale', String(ty.headingScale || 1));
+    root.setProperty('--body-weight', ty.bodyBold ? '700' : '400');
+    root.setProperty('--body-style', ty.bodyItalic ? 'italic' : 'normal');
+    root.setProperty('--body-scale', String(ty.bodyScale || 1));
     const fams = [];
     if (ty.headingFont) fams.push(ty.headingFont);
     if (ty.bodyFont && ty.bodyFont !== ty.headingFont) fams.push(ty.bodyFont);
@@ -825,6 +837,8 @@
     const a = DATA.about || {};
     setText('[data-bind="about-short"]', a.shortBio);
     setText('[data-bind="about-long"]', a.longBio);
+    document.querySelectorAll('[data-bind="about-short"]').forEach((el) => applyTextStyle(el, a.shortBioStyle));
+    document.querySelectorAll('[data-bind="about-long"]').forEach((el) => applyTextStyle(el, a.longBioStyle));
     const expHost = document.querySelector('[data-bind="experience"]');
     if (expHost && a.experience) {
       expHost.innerHTML = a.experience.map((e) => `
@@ -842,14 +856,30 @@
     }
   }
 
+  // Per-text override (bold/italic/size) layered on top of the global typography.
+  // Only overrides what's set; otherwise the element keeps its CSS (which uses the
+  // global --*-weight/-style/-scale vars).
+  function applyTextStyle(el, st) {
+    if (!el) return;
+    el.style.fontWeight = (st && st.bold) ? '700' : '';
+    el.style.fontStyle = (st && st.italic) ? 'italic' : '';
+    el.style.fontSize = '';
+    if (st && st.scale && Number(st.scale) !== 1) {
+      const base = parseFloat(getComputedStyle(el).fontSize);
+      if (base) el.style.fontSize = (base * Number(st.scale)) + 'px';
+    }
+  }
+
   function renderPageCopy(pageKey) {
     if (!DATA.pages) return;
     const pg = DATA.pages[pageKey] || {};
     const ft = DATA.pages.footer || {};
     document.querySelectorAll('[data-bind^="pages."]').forEach(function (el) {
       const key = el.dataset.bind.slice(6);
-      const val = pg[key] !== undefined ? pg[key] : ft[key];
+      const fromPg = pg[key] !== undefined;
+      const val = fromPg ? pg[key] : ft[key];
       if (val != null) el.textContent = val;
+      applyTextStyle(el, fromPg ? pg[key + 'Style'] : ft[key + 'Style']);
     });
   }
 
@@ -893,15 +923,20 @@
       renderAbout();
     } else {
       // Reel/gallery pages render by convention: reels[pageKey] (Home uses
-      // 'tech') + gallery[pageKey]. This means a NEW page added in the editor
-      // renders with no code change — it just needs reels[slug]/gallery[slug].
+      // 'tech') + gallery[pageKey]. A page can hide either built-in section via
+      // pages[pageKey].showReel / showWork (default = shown).
+      const pg = (DATA.pages && DATA.pages[pageKey]) || {};
       const reelKey = (pageKey === 'home') ? 'tech' : pageKey;
-      if (document.querySelector('#hero-reel') && DATA.reels && DATA.reels[reelKey]) {
-        renderReel(reelKey, '#hero-reel');
-      }
-      if (document.querySelector('#gallery') && DATA.gallery && DATA.gallery[pageKey]) {
-        renderGallery(pageKey, '#gallery');
-      }
+      const reelEl = document.querySelector('#hero-reel');
+      const reelSection = reelEl ? reelEl.closest('.section') : document.querySelector('.section--reel');
+      const showReel = pg.showReel !== false;
+      if (reelSection) reelSection.style.display = showReel ? '' : 'none';
+      if (showReel && reelEl && DATA.reels && DATA.reels[reelKey]) renderReel(reelKey, '#hero-reel');
+      const galleryEl = document.querySelector('#gallery');
+      const gallerySection = galleryEl ? galleryEl.closest('.section') : null;
+      const showWork = pg.showWork !== false;
+      if (gallerySection) gallerySection.style.display = showWork ? '' : 'none';
+      if (showWork && galleryEl && DATA.gallery && DATA.gallery[pageKey]) renderGallery(pageKey, '#gallery');
     }
     renderCanvases(pageKey);
     initReelButtons();
@@ -913,26 +948,82 @@
      Blocks are placed on a 12-col grid (desktop). On mobile they stack in
      order automatically (CSS media query), so a layout can never become
      unreadable on a phone. */
-  function renderCanvases(pageKey) {
-    const cv = DATA.canvases && DATA.canvases[pageKey];
-    let host = document.getElementById('canvas-sections');
-    if (!cv || !cv.blocks || !cv.blocks.length) { if (host) host.innerHTML = ''; return; }
-    const pb = document.querySelector('.page-body .container') || document.querySelector('.page-body');
-    if (!pb) return;
-    if (!host) { host = document.createElement('div'); host.id = 'canvas-sections'; pb.appendChild(host); }
+  function renderCanvasSectionHtml(cv) {
     const cols = (cv.grid && cv.grid.cols) || 12;
     const rowH = (cv.grid && cv.grid.rowHeight) || 48;
     const gap = (cv.grid && cv.grid.gap) || 12;
-    const blocks = cv.blocks.map((b) => {
+    const title = cv.title
+      ? '<h2 class="section__title">' + escapeHtml(cv.title) + '</h2><span class="section__rule in-view" aria-hidden="true"></span>'
+      : '';
+    const blocks = (cv.blocks || []).map((b) => {
       const d = b.desktop || { c: 1, r: 1, w: cols, h: 2 };
       const style = 'grid-column:' + d.c + '/span ' + d.w + ';grid-row:' + d.r + '/span ' + d.h + ';';
       let inner = '';
-      if (b.type === 'heading') inner = '<h2 class="canvas__h" style="text-align:' + (b.align || 'left') + '">' + escapeHtml(b.content || '') + '</h2>';
-      else if (b.type === 'text') inner = '<div class="canvas__text" style="text-align:' + (b.align || 'left') + '">' + escapeHtml(b.content || '').replace(/\n/g, '<br>') + '</div>';
+      const fs = b.fontStyle === 'bold' ? 'font-weight:700;font-style:normal;'
+        : b.fontStyle === 'italic' ? 'font-style:italic;'
+        : b.fontStyle === 'normal' ? 'font-weight:400;font-style:normal;' : '';
+      if (b.type === 'heading') inner = '<h3 class="canvas__h" style="text-align:' + (b.align || 'left') + ';' + fs + '">' + escapeHtml(b.content || '') + '</h3>';
+      else if (b.type === 'text') inner = '<div class="canvas__text" style="text-align:' + (b.align || 'left') + ';' + fs + '">' + escapeHtml(b.content || '').replace(/\n/g, '<br>') + '</div>';
       else if (b.type === 'image') inner = b.src ? '<img class="canvas__img" src="' + escapeAttr(b.src) + '" alt="' + escapeAttr(b.alt || '') + '">' : '<div class="canvas__ph">image</div>';
+      else if (b.type === 'video') {
+        if (b.src) {
+          const mp4 = b.src.replace(/^videos\/webm\//, 'videos/mp4/').replace(/\.webm$/i, '.mp4');
+          const s2 = mp4 !== b.src ? '<source src="' + escapeAttr(mp4) + '" type="video/mp4">' : '';
+          inner = '<video class="canvas__video" ' + (b.poster ? 'poster="' + escapeAttr(b.poster) + '" ' : '') +
+            'controls loop muted playsinline preload="none" controlsList="nodownload" disablepictureinpicture>' +
+            '<source src="' + escapeAttr(b.src) + '" type="' + (b.src.endsWith('.webm') ? 'video/webm' : 'video/mp4') + '">' + s2 + '</video>';
+        } else inner = '<div class="canvas__ph">video</div>';
+      }
+      else if (b.type === 'reel') {
+        if (b.videoId && b.provider) {
+          const data = escapeAttr(JSON.stringify({ provider: b.provider, id: b.videoId, title: b.title || '' }));
+          inner = '<button class="reel canvas__reel" data-cv-reel="' + data + '" aria-label="Play ' + escapeAttr(b.title || 'reel') + '">' +
+            (b.poster ? '<img class="reel__poster" src="' + escapeAttr(b.poster) + '" alt="">' : '') +
+            '<div class="reel__play" aria-hidden="true"><svg class="reel__play-svg" viewBox="0 0 80 80"><circle class="reel__play-ring" cx="40" cy="40" r="38"/><polygon class="reel__play-arrow" points="32,24 32,56 58,40"/></svg></div></button>';
+        } else inner = '<div class="canvas__ph">reel — paste a Vimeo/YouTube URL</div>';
+      }
       return '<div class="canvas__block" style="' + style + '">' + inner + '</div>';
     }).join('');
-    host.innerHTML = '<section class="canvas section"><div class="canvas__grid" style="grid-template-columns:repeat(' + cols + ',minmax(0,1fr));gap:' + gap + 'px;grid-auto-rows:' + rowH + 'px">' + blocks + '</div></section>';
+    return '<section class="section canvas">' + title +
+      '<div class="canvas__grid" style="grid-template-columns:repeat(' + cols + ',minmax(0,1fr));gap:' + gap + 'px;grid-auto-rows:' + rowH + 'px">' + blocks + '</div></section>';
+  }
+
+  function renderCanvases(pageKey) {
+    document.querySelectorAll('.canvas-host').forEach((n) => n.remove());
+    let list = DATA.canvases && DATA.canvases[pageKey];
+    if (!list) return;
+    if (!Array.isArray(list)) list = [list]; // back-compat with old single-canvas format
+    const container = document.querySelector('.page-body .container') || document.querySelector('.page-body');
+    if (!container) return;
+    const reelSection = document.querySelector('.section--reel');
+    const reelVideo = document.querySelector('#hero-reel');
+    const galleryEl = document.querySelector('#gallery');
+    const gallerySection = galleryEl ? galleryEl.closest('.section') : null;
+    const anchors = { 'top': [], 'reel-mid': [], 'after-reel': [], 'work-mid': [], 'after-gallery': [] };
+    list.forEach((cv) => {
+      if (!cv) return;
+      if ((!cv.blocks || !cv.blocks.length) && !cv.title) return;
+      (anchors[cv.where] || anchors['after-gallery']).push(cv);
+    });
+    Object.keys(anchors).forEach((where) => {
+      if (!anchors[where].length) return;
+      const host = document.createElement('div');
+      host.className = 'canvas-host';
+      host.innerHTML = anchors[where].map(renderCanvasSectionHtml).join('');
+      if (where === 'top') { if (reelSection) reelSection.before(host); else container.insertBefore(host, container.firstChild); }
+      else if (where === 'reel-mid') { if (reelVideo) reelVideo.before(host); else if (reelSection) reelSection.appendChild(host); else container.appendChild(host); }
+      else if (where === 'after-reel') { if (reelSection) reelSection.after(host); else container.appendChild(host); }
+      else if (where === 'work-mid') { if (galleryEl) galleryEl.before(host); else if (gallerySection) gallerySection.appendChild(host); else container.appendChild(host); }
+      else { if (gallerySection) gallerySection.after(host); else container.appendChild(host); }
+    });
+    // Wire reel blocks (Vimeo/YouTube) to play, reusing the site's reel embed.
+    document.querySelectorAll('.canvas__reel[data-cv-reel]').forEach((btn) => {
+      if (btn.__cvWired) return; btn.__cvWired = true;
+      btn.addEventListener('click', () => {
+        let r; try { r = JSON.parse(btn.getAttribute('data-cv-reel')); } catch (e) { return; }
+        openReel(r, btn);
+      });
+    });
   }
 
   /* ---------- Editor live-preview hook ----------
