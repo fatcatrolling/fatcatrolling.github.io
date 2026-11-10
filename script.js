@@ -1191,16 +1191,34 @@
     } catch (err) {}
   }
 
-  // Reel watch depth: listen to the Vimeo player's postMessage events.
+  // Reel watch depth: talk to the Vimeo player over postMessage, mirroring the
+  // handshake of Vimeo's official @vimeo/player SDK (src/player.js +
+  // lib/postmessage.js): send {method:'ping'} as a plain OBJECT (the player
+  // ignores JSON strings), wait for a 'ready' event or a 'ping' reply, THEN
+  // send {method:'addEventListener', value:<event>} for each event we need.
+  const vimeoSubscribed = new Set();
   function watchVimeo(iframe, key) {
     if (!gc.on || !iframe || !iframe.contentWindow) return;
-    vimeoWatch.set(iframe.contentWindow, key);
-    iframe.addEventListener('load', () => subscribeVimeo(iframe.contentWindow));
+    const win = iframe.contentWindow;
+    vimeoWatch.set(win, key);
+    const ping = () => { try { win.postMessage({ method: 'ping' }, 'https://player.vimeo.com'); } catch (e) {} };
+    iframe.addEventListener('load', () => {
+      ping();
+      // The player app can boot a little after the iframe's load event;
+      // keep pinging briefly until it answers.
+      let tries = 0;
+      const t = setInterval(() => {
+        if (vimeoSubscribed.has(win) || ++tries > 10) { clearInterval(t); return; }
+        ping();
+      }, 1000);
+    });
   }
   function subscribeVimeo(win) {
+    if (vimeoSubscribed.has(win)) return;
+    vimeoSubscribed.add(win);
     try {
       ['timeupdate', 'ended'].forEach((ev) =>
-        win.postMessage(JSON.stringify({ method: 'addEventListener', value: ev }), 'https://player.vimeo.com'));
+        win.postMessage({ method: 'addEventListener', value: ev }, 'https://player.vimeo.com'));
     } catch (e) {}
   }
   function onVimeoMessage(e) {
@@ -1210,8 +1228,9 @@
       if (!key) return;
       let d = e.data;
       if (typeof d === 'string') { try { d = JSON.parse(d); } catch (_) { return; } }
-      if (!d || !d.event) return;
-      if (d.event === 'ready') { subscribeVimeo(e.source); return; }
+      if (!d) return;
+      if (d.event === 'ready' || d.method === 'ping') { subscribeVimeo(e.source); return; }
+      if (!d.event) return;
       const pct = d.event === 'ended' ? 1
         : (d.event === 'timeupdate' && d.data && typeof d.data.percent === 'number') ? d.data.percent : null;
       if (pct == null) return;
