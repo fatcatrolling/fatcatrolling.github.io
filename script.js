@@ -603,10 +603,22 @@
       }
     }
     window.addEventListener('click', (e) => mascotTapAt(e.clientX, e.clientY));
+    // Only a real TAP counts: a scroll swipe that happens to lift the finger
+    // over the mascot's box must not. Tap = finger moved < 10px and lifted
+    // within 500ms of touching down.
+    let touchStart = null;
+    window.addEventListener('touchstart', (e) => {
+      const t = e.touches && e.touches[0];
+      touchStart = (t && e.touches.length === 1) ? { x: t.clientX, y: t.clientY, at: Date.now() } : null;
+    }, { passive: true });
     window.addEventListener('touchend', (e) => {
-      if (e.changedTouches && e.changedTouches[0]) {
-        mascotTapAt(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-      }
+      const t = e.changedTouches && e.changedTouches[0];
+      const s = touchStart;
+      touchStart = null;
+      if (!t || !s) return;
+      if (Math.abs(t.clientX - s.x) > 10 || Math.abs(t.clientY - s.y) > 10) return; // swipe
+      if (Date.now() - s.at > 500) return;                                          // long-press
+      mascotTapAt(t.clientX, t.clientY);
     }, { passive: true });
 
     // Auto-blink every 4–8 s — hero and corner blink in sync
@@ -1160,6 +1172,10 @@
       whenShown(() => {
         if (trackPage() === '404') track('404' + location.pathname, 'Broken link: ' + location.pathname);
         else gcSend({});                                       // the pageview
+        // One site-wide path sent on every page: GoatCounter counts each
+        // visitor once per path per session, so this row = number of PEOPLE
+        // (page rows count once per page, so 1 person / 3 pages = 3 there).
+        track('visitor', 'A person visited the site', { once: true });
         initEngagementTracking();
       });
 
