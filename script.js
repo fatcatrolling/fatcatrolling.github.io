@@ -128,6 +128,7 @@
     if (!PALETTES.includes(name)) name = 'warm';
     document.documentElement.setAttribute('data-palette', name);
     try { localStorage.setItem('palette', name); } catch (e) {}
+    if (animate) track('palette/' + name, 'Switched theme: ' + name);
     document.querySelectorAll('.palette__swatch').forEach((s) => {
       const isActive = s.dataset.palette === name;
       s.setAttribute('aria-pressed', isActive ? 'true' : 'false');
@@ -202,8 +203,15 @@
     document.querySelectorAll('.project[data-type="video"]').forEach((tile) => {
       const v = tile.querySelector('video');
       if (!v) return;
-      tile.addEventListener('mouseenter', () => v.play().catch(() => {}));
-      tile.addEventListener('mouseleave', () => { v.pause(); v.load(); });
+      const name = clipName({ title: tile.dataset.title, src: tile.dataset.src });
+      let hoverTimer = 0;
+      tile.addEventListener('mouseenter', () => {
+        v.play().catch(() => {});
+        // Count a hover only if the cursor rests 0.5s (skips drive-bys), once per clip per visit.
+        hoverTimer = setTimeout(() => track('gallery-hover/' + trackPage() + '/' + slug(name),
+          'Previewed: ' + name, { once: true }), 500);
+      });
+      tile.addEventListener('mouseleave', () => { clearTimeout(hoverTimer); v.pause(); v.load(); });
     });
   }
 
@@ -281,7 +289,7 @@
   }
 
   /* ---------- 6. Reel embed (Vimeo / YouTube / placeholder) ---------- */
-  function openReel(reel, trigger) {
+  function openReel(reel, trigger, trackKey) {
     let content;
     if (reel.provider === 'vimeo' && reel.id) {
       content = document.createElement('iframe');
@@ -306,6 +314,7 @@
         </div>`;
     }
     trigger.replaceWith(content);
+    if (trackKey && reel.provider === 'vimeo' && reel.id) watchVimeo(content, trackKey);
   }
 
   function openImage(item, trigger) {
@@ -337,6 +346,12 @@
       v.appendChild(s2);
     }
     v.autoplay = true;
+    const clipPath = 'gallery-watch/' + trackPage() + '/' + slug(clipName(item));
+    v.addEventListener('timeupdate', () => {
+      if (v.duration && v.currentTime >= v.duration * 0.9) {
+        track(clipPath, 'Watched full clip: ' + clipName(item), { once: true });
+      }
+    });
     openLightbox(v, trigger, item.title);
     v.play().catch(() => {});
   }
@@ -345,8 +360,11 @@
   function initReelButtons() {
     document.querySelectorAll('[data-reel]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const reel = (DATA.reels && DATA.reels[btn.dataset.reel]) || null;
-        if (reel) openReel(reel, btn);
+        const key = btn.dataset.reel;
+        const reel = (DATA.reels && DATA.reels[key]) || null;
+        if (!reel) return;
+        track('reel-play/' + key, 'Played reel: ' + key + ' (' + trackPage() + ' page)');
+        openReel(reel, btn, key);
       });
     });
   }
@@ -360,6 +378,7 @@
           alt: tile.dataset.alt || tile.dataset.title || '',
           title: tile.dataset.title
         };
+        track('gallery-open/' + trackPage() + '/' + slug(clipName(item)), 'Opened: ' + clipName(item));
         if (tile.dataset.type === 'video') openVideo(item, tile);
         else openImage(item, tile);
       });
@@ -397,6 +416,7 @@
     io.observe(heroMascot);
     cornerMascot.addEventListener('click', (e) => {
       e.preventDefault();
+      track('mascot/back-to-top', 'Used the back-to-top cat', { once: true });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   }
@@ -463,6 +483,7 @@
         if (clicks.length >= 3) {
           e.preventDefault();
           clicks = [];
+          track('mascot/wobble', 'Found the mascot easter egg');
           m.classList.add('wobble');
           setTimeout(() => m.classList.remove('wobble'), 700);
         }
@@ -571,10 +592,12 @@
       if (clientX < r.left || clientX > r.right ||
           clientY < r.top  || clientY > r.bottom) return;
       heroHi();
+      track('mascot/pet', 'Clicked the big mascot', { once: true });
       heroClicks.push(now);
       heroClicks = heroClicks.filter((t) => now - t < 1500);
       if (heroClicks.length >= 3) {
         heroClicks = [];
+        track('mascot/wobble', 'Found the mascot easter egg');
         mascot.classList.add('wobble');
         setTimeout(() => mascot.classList.remove('wobble'), 700);
       }
@@ -657,12 +680,14 @@
     if (!email) return;
     document.querySelectorAll('[data-bind="email"]').forEach((el) => {
       el.addEventListener('click', (e) => {
-        if (!navigator.clipboard) return; // let the mailto: href proceed
+        if (!navigator.clipboard) { track('email-open', 'Opened email app'); return; } // mailto: proceeds
         e.preventDefault();
         navigator.clipboard.writeText(email).then(() => {
+          track('email-copy', 'Copied email address (' + trackPage() + ' page)');
           announce('Copied ' + email + ' to clipboard');
           showCopiedToast(el);
         }).catch(() => {
+          track('email-open', 'Opened email app');
           window.location.href = 'mailto:' + email;
         });
       });
@@ -1021,7 +1046,9 @@
       if (btn.__cvWired) return; btn.__cvWired = true;
       btn.addEventListener('click', () => {
         let r; try { r = JSON.parse(btn.getAttribute('data-cv-reel')); } catch (e) { return; }
-        openReel(r, btn);
+        const key = 'extra-' + slug(r.title || r.id);
+        track('reel-play/' + key, 'Played extra reel: ' + (r.title || r.id));
+        openReel(r, btn, key);
       });
     });
   }
@@ -1044,8 +1071,188 @@
     document.querySelectorAll('.section__rule').forEach((r) => r.classList.add('in-view'));
   });
 
+  /* ---------- Analytics (GoatCounter) ----------
+     Anonymous, cookie-free visit + interaction counts. Switched on by
+     data.analytics.goatcounter (the dashboard code, e.g. "fatcatrolling");
+     an empty string turns it off. The counter script is self-hosted in
+     vendor/. Never counts localhost, file://, the editor preview (iframe),
+     or a page that was prerendered but never actually shown.
+     Debug: add ?gc-debug to any URL -> every count is logged to the console
+     instead of being sent (works on localhost too).
+     Every call is try/catch-wrapped so tracking can never break the site. */
+  const gc = { on: false, ready: false, debug: false, queue: [], sent: new Set() };
+  const vimeoWatch = new Map(); // reel iframe window -> reel key
+
+  function slug(s) {
+    return String(s == null ? '' : s).toLowerCase()
+      .replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '').slice(0, 60) || 'untitled';
+  }
+  function trackPage() { return (document.body && document.body.dataset.page) || 'unknown'; }
+  function clipName(item) {
+    if (item.title) return item.title;
+    const file = String(item.src || '').split('/').pop() || '';
+    return file.replace(/\.[a-z0-9]+$/i, '');
+  }
+
+  function gcSend(vars) {
+    if (gc.debug) {
+      console.info('[analytics] ' + (vars.event ? 'event   ' : 'pageview') + '  ' +
+        (vars.path || location.pathname) + (vars.title ? '  |  ' + vars.title : ''));
+      return;
+    }
+    if (!gc.ready) { if (gc.queue.length < 100) gc.queue.push(vars); return; } // capped: an ad-blocker may never let it load
+    try { window.goatcounter.count(vars); } catch (e) {}
+  }
+
+  // Count one interaction. opts.once = at most once per page view.
+  function track(path, title, opts) {
+    try {
+      if (!gc.on) return;
+      if (opts && opts.once) {
+        if (gc.sent.has(path)) return;
+        gc.sent.add(path);
+      }
+      gcSend({ path: path, title: title || path, event: true });
+    } catch (e) {}
+  }
+
+  // Run fn once the page is really in front of the visitor: not while
+  // prerendering (speculation rules) and not in a background tab.
+  function whenShown(fn) {
+    if (document.prerendering) {
+      document.addEventListener('prerenderingchange', () => whenShown(fn), { once: true });
+    } else if (document.visibilityState === 'hidden') {
+      const onVis = () => {
+        if (document.visibilityState !== 'visible') return;
+        document.removeEventListener('visibilitychange', onVis);
+        fn();
+      };
+      document.addEventListener('visibilitychange', onVis);
+    } else {
+      fn();
+    }
+  }
+
+  function initAnalytics() {
+    try {
+      gc.debug = /[?&]gc-debug(=|&|$)/.test(location.search);
+      const code = String((DATA.analytics && DATA.analytics.goatcounter) || '').trim().toLowerCase();
+      if (!gc.debug) {
+        if (!/^[a-z0-9-]+$/.test(code)) return;                // off (or invalid code)
+        if (window.self !== window.top) return;                // editor preview iframe
+        if (location.protocol === 'file:') return;
+        if (/^(localhost|127\.|\[::1\])/.test(location.hostname)) return;
+        if (window.__fcrRedirecting) return;                   // 404 router forwarding an old URL
+      }
+      gc.on = true;
+
+      if (!gc.debug) {
+        window.goatcounter = { no_onload: true };              // we count the pageview ourselves
+        const s = document.createElement('script');
+        s.async = true;
+        s.src = '/vendor/goatcounter-count.js';
+        s.setAttribute('data-goatcounter', 'https://' + code + '.goatcounter.com/count');
+        s.onload = () => { gc.ready = true; gc.queue.splice(0).forEach(gcSend); };
+        document.head.appendChild(s);
+      }
+
+      whenShown(() => {
+        if (trackPage() === '404') track('404' + location.pathname, 'Broken link: ' + location.pathname);
+        else gcSend({});                                       // the pageview
+        initEngagementTracking();
+      });
+
+      document.addEventListener('click', onTrackedLinkClick, true);
+      document.addEventListener('auxclick', onTrackedLinkClick, true); // middle-click / new tab
+      window.addEventListener('message', onVimeoMessage);
+    } catch (e) { gc.on = false; }
+  }
+
+  // External links (socials, credits), internal nav, and stray mailto: links.
+  function onTrackedLinkClick(e) {
+    try {
+      if (e.type === 'auxclick' && e.button !== 1) return;    // middle-click only, not right-click
+      const a = e.target && e.target.closest && e.target.closest('a[href]');
+      if (!a) return;
+      if (a.matches('[data-bind="email"], .corner-mascot')) return; // tracked by their own handlers
+      const url = new URL(a.getAttribute('href'), location.href);
+      if (url.protocol === 'mailto:') { track('email-open', 'Opened email app'); return; }
+      if (!/^https?:$/.test(url.protocol)) return;
+      if (url.host !== location.host) {
+        const host = url.hostname.replace(/^www\./, '').replace(/[^a-z0-9.-]/gi, '');
+        const label = (a.textContent || '').trim() || host;
+        track('outbound/' + host, 'Clicked out to ' + label);
+        return;
+      }
+      if (url.pathname === location.pathname) return;          // same-page anchor
+      const to = slug(url.pathname.replace(/^\/+|\/+$/g, '').replace(/\.html$/i, '') || 'home');
+      track('nav/' + trackPage() + '-to-' + to, 'Nav: ' + trackPage() + ' to ' + to);
+    } catch (err) {}
+  }
+
+  // Reel watch depth: listen to the Vimeo player's postMessage events.
+  function watchVimeo(iframe, key) {
+    if (!gc.on || !iframe || !iframe.contentWindow) return;
+    vimeoWatch.set(iframe.contentWindow, key);
+    iframe.addEventListener('load', () => subscribeVimeo(iframe.contentWindow));
+  }
+  function subscribeVimeo(win) {
+    try {
+      ['timeupdate', 'ended'].forEach((ev) =>
+        win.postMessage(JSON.stringify({ method: 'addEventListener', value: ev }), 'https://player.vimeo.com'));
+    } catch (e) {}
+  }
+  function onVimeoMessage(e) {
+    try {
+      if (e.origin !== 'https://player.vimeo.com') return;
+      const key = vimeoWatch.get(e.source);
+      if (!key) return;
+      let d = e.data;
+      if (typeof d === 'string') { try { d = JSON.parse(d); } catch (_) { return; } }
+      if (!d || !d.event) return;
+      if (d.event === 'ready') { subscribeVimeo(e.source); return; }
+      const pct = d.event === 'ended' ? 1
+        : (d.event === 'timeupdate' && d.data && typeof d.data.percent === 'number') ? d.data.percent : null;
+      if (pct == null) return;
+      [25, 50, 75, 100].forEach((m) => {
+        if (pct >= (m === 100 ? 0.97 : m / 100)) {
+          track('reel-watch/' + key + '/' + m, 'Watched ' + m + '% of reel: ' + key, { once: true });
+        }
+      });
+    } catch (err) {}
+  }
+
+  // Scroll depth + time on page (GoatCounter has no time-on-page of its own).
+  function initEngagementTracking() {
+    const page = trackPage();
+    const onScroll = () => {
+      const doc = document.documentElement;
+      if (window.scrollY <= 0) return;                         // ignore short pages that start "scrolled"
+      const ratio = (window.scrollY + window.innerHeight) / Math.max(1, doc.scrollHeight);
+      if (ratio >= 0.5) track('scroll/' + page + '/50', 'Scrolled halfway: ' + page, { once: true });
+      if (ratio >= 0.98) {
+        track('scroll/' + page + '/100', 'Reached the bottom: ' + page, { once: true });
+        window.removeEventListener('scroll', onScroll);
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    const marks = [[30, '30s'], [120, '2m'], [300, '5m']];
+    let seconds = 0;
+    const timer = setInterval(() => {
+      if (document.visibilityState !== 'visible') return;     // only count time actually looking
+      seconds++;
+      marks.forEach(([s, label]) => {
+        if (seconds === s) track('time/' + page + '/' + label, 'Stayed ' + label + ' on ' + page, { once: true });
+      });
+      if (seconds >= marks[marks.length - 1][0]) clearInterval(timer);
+    }, 1000);
+  }
+
   /* ---------- Boot ---------- */
   function boot() {
+    initAnalytics();
     applyThemesAndFonts();
     initPaletteSwitcher();
 
