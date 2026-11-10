@@ -13,6 +13,9 @@
 
 try {
   window.SITE_DATA = {
+    "analytics": {
+      "goatcounter": "fatcatrolling"
+    },
     "profile": {
       "name": "Kim Nguyen",
       "brand": "Fat Cat Rolling",
@@ -384,7 +387,7 @@ try {
         "pagesHeading": "Pages",
         "reelsHeading": "Reels",
         "creditsLabel": "Credits",
-        "tagline": "Hand-built, no cookies, no tracking.",
+        "tagline": "Hand-built. No cookies. Anonymous visit counts only.",
         "navHome": "Home",
         "navTechnical": "Technical Animation",
         "navAnimation": "Animation",

@@ -13,6 +13,7 @@
         '/index.html':     '/'
       };
       if (map[path]) {
+        window.__fcrRedirecting = true; // tells analytics not to count this as a broken link
         location.replace(map[path] + location.search + location.hash);
       }
     })();
