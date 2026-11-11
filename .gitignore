@@ -4,6 +4,7 @@ Brief.txt
 
 # Bug recordings + asset sources — kept locally, not shipped
 bugs/
+screenshots/
 images/OpenGraph/
 
 # OS / editor noise

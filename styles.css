@@ -556,6 +556,56 @@ body::before {
 }
 .credits__list a:hover { border-bottom-color: var(--accent); color: var(--accent); }
 
+/* ---------- Custom list sections (e.g. Awards) ---------- */
+.list-section__list {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.list-section__list li {
+  position: relative;
+  padding-left: 1.4em;
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 8px 24px;
+  font-size: calc(clamp(15px, 1.5vw, 18px) * var(--body-scale, 1));
+  line-height: 1.5;
+  color: var(--fg);
+}
+.list-section__text { max-width: 68ch; }
+/* Year: right-aligned, same treatment as the Experience dates */
+.list-section__year {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: calc(14px * var(--body-scale, 1));
+  white-space: nowrap; flex-shrink: 0;
+}
+.list-section__list li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0.62em;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Custom sections: stacked blocks (text / list / gallery / video) */
+.cs-block + .cs-block { margin-top: 48px; }
+.cs-text p {
+  font-size: calc(18px * var(--body-scale, 1));
+  line-height: 1.6;
+  max-width: 62ch;
+  color: var(--fg);
+  margin: 0 0 1em;
+}
+.cs-text p:last-child { margin-bottom: 0; }
+.cs-text a, .list-section__text a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 3px;
+  transition: color 200ms ease;
+}
+.cs-text a:hover, .list-section__text a:hover { color: var(--accent); }
+
 /* ---------- Section heading + animated rule ---------- */
 .section { padding: 80px 0 96px; }
 .section--reel  { padding: 48px 0 96px; }

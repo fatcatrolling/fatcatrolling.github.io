@@ -101,12 +101,12 @@ try {
           {
             "time": "01:23",
             "project": "General Dupont Doing Laundry",
-            "role": "Short 3D animated film - all roles"
+            "role": "Short 3D animated film, all roles"
           },
           {
             "time": "01:43",
             "project": "Noodles VR",
-            "role": "Short interactive VR story - all roles"
+            "role": "Short interactive VR story, all roles"
           }
         ]
       },
@@ -130,12 +130,12 @@ try {
           {
             "time": "01:24",
             "project": "General Dupont Doing Laundry",
-            "role": "Short 3D animated film - all roles"
+            "role": "Short 3D animated film, all roles"
           },
           {
             "time": "01:43",
             "project": "Noodles VR",
-            "role": "Short interactive VR story - all roles"
+            "role": "Short interactive VR story, all roles"
           },
           {
             "time": "01:47",
@@ -164,12 +164,12 @@ try {
           {
             "time": "01:13",
             "project": "General Dupont Doing Laundry",
-            "role": "Short 3D animated film - all roles"
+            "role": "Short 3D animated film, all roles"
           },
           {
             "time": "01:13",
             "project": "Personal VFX Projects",
-            "role": "VFX creation + Procedural animation - all roles"
+            "role": "VFX creation + Procedural animation, all roles"
           }
         ]
       }
@@ -187,21 +187,21 @@ try {
           "type": "video",
           "src": "videos/webm/fsh_winter_web.webm",
           "poster": "videos/webp/fsh_winter.webp",
-          "title": "Bitmoji Fashion Try-on Lens - Winter",
+          "title": "Bitmoji Fashion Try-on Lens, Winter",
           "alt": "Bitmoji Fashion Try-on Lens Winter theme demo"
         },
         {
           "type": "video",
           "src": "videos/webm/yearbook_web.webm",
           "poster": "videos/webp/yearbook.webp",
-          "title": "Bitmoji Adoption Lens - Yearbook 2025",
+          "title": "Bitmoji Adoption Lens, Yearbook 2025",
           "alt": "Bitmoji Adoption Lens Yearbook 2025 demo, on the left user without Bitmoji would see themselve, on the right user with Bitmoji would see their Bitmoji"
         },
         {
           "type": "video",
           "src": "videos/webm/running_web.webm",
           "poster": "videos/webp/running.webp",
-          "title": "Bitmoji Adoption Lens - Running",
+          "title": "Bitmoji Adoption Lens, Running",
           "alt": "Bitmoji Adoption Lens Running demo, on the left user without Bitmoji would see a no traits avatar, on the right user with Bitmoji would see their Bitmoji"
         },
         {
@@ -289,14 +289,14 @@ try {
           "type": "video",
           "src": "videos/webm/solaropposite_holiday_wtf_web.webm",
           "poster": "videos/webp/solaropposite_holiday_wtf_web.webp",
-          "title": "Solar Opposite - Holiday Special",
-          "alt": "Solar Opposite - Holiday Special clips"
+          "title": "Solar Opposite, Holiday Special",
+          "alt": "Solar Opposite, Holiday Special clips"
         }
       ]
     },
     "about": {
-      "shortBio": "Kim Nguyen is a hybrid animator living at the intersection of art and technology — asking both how it works and how it makes us feel.",
-      "longBio": "Kim Nguyen is a multi-disciplinary animator and technical artist in Los Angeles, working at the seam where generative AI meets production craft. At Snap, she helped build the Snap the Look Lens — a customized ComfyUI pipeline that translates real-world fashion onto Bitmoji avatars through visual reference analysis — and ran Bitmoji Fashion Lenses end to end, from 3D content generation through QA and deployment. She prototypes AI-assisted styling workflows with Claude to turn photos and text into digital fashion, and rigs and animates 3D assets across the Snapchat app. Before Snap, she delivered VFX for Robot Chicken, Crossing Swords, and M.O.D.O.K. — scene tracking, 3D effects simulation, lip-sync, and rotoscoping at television sprint pace — and produced motion graphics for 360° and immersive media. Two questions drive every project: does it work well, and does it feel good.",
+      "shortBio": "Kim Nguyen is a hybrid animator living at the intersection of art and technology, asking both how it works and how it makes us feel.",
+      "longBio": "Kim Nguyen is a multi-disciplinary animator and technical artist in Los Angeles, working at the seam where generative AI meets production craft. At Snap, she helped build the Snap the Look Lens, a customized ComfyUI pipeline that translates real-world fashion onto Bitmoji avatars through visual reference analysis, and ran Bitmoji Fashion Lenses end to end, from 3D content generation through QA and deployment. She prototypes AI-assisted styling workflows with Claude to turn photos and text into digital fashion, and rigs and animates 3D assets across the Snapchat app. Before Snap, she delivered VFX for Robot Chicken, Crossing Swords, and M.O.D.O.K., handling scene tracking, 3D effects simulation, lip-sync, and rotoscoping at television sprint pace, and produced motion graphics for 360° and immersive media. Two questions drive every project: does it work well, and does it feel good.",
       "experience": [
         {
           "role": "3D / Bitmoji Technical Animator",
@@ -304,11 +304,12 @@ try {
           "location": "Santa Monica, CA",
           "years": "Apr 2022 – Jul 2026",
           "highlights": [
-            "Produce Bitmoji Fashion Lenses end to end — 3D content generation, rigging, animation, QA, and deployment to the Snapchat app.",
-            "Built a customized ComfyUI pipeline for AI-assisted Bitmoji fashion asset creation, documented workflow for team adoption.",
-            "Support QA and bug triage for avatar and lens experiences; continuously optimize the animation production pipeline."
+            "Ran Bitmoji Fashion Lenses end to end, from 3D asset generation, rigging, and hand-keyed animation in Maya through state-machine animation triggers, mobile optimization, QA, and release in the Snapchat app.",
+            "Built ComfyUI workflows for concept art, character explorations, and styling variations, trained SDXL LoRA models in Kohya for background assets in Bitmoji Stories and Lenses, and documented the hybrid AI and traditional process for the team.",
+            "Tested generative video models (AnimateDiff-Evolved, FLUX, LTX Video, WAN Video, QwenVL, Google Veo 3) and used them to iterate on animated content.",
+            "Designed and tested concepts for the Snap the Look AI Lens in ComfyUI and Lens Studio, and built Bitmoji Stylist, an internal Google Vertex AI (Gemini) tool that puts together color-coordinated outfits from reference photos and text prompts using the Bitmoji garment catalog."
           ],
-          "skills": "Lens Studio, ComfyUI, Maya, rigging, 3D animation, AI pipeline, QA/bug triage, pipeline optimization"
+          "skills": "Maya, Lens Studio, ComfyUI, Kohya (LoRA training), Google Vertex AI, rigging, 3D animation, state machines, QA and bug triage"
         },
         {
           "role": "VFX Compositor",
@@ -316,22 +317,22 @@ try {
           "location": "Burbank, CA",
           "years": "Mar 2018 – Jul 2018 · Sep 2019 – Jan 2022",
           "highlights": [
-            "Composited VFX for Robot Chicken, Crossing Swords, M.O.D.O.K., and SuperMansion — credited on multiple award-winning Adult Swim productions.",
-            "Executed 2D/3D motion tracking, keying, rotoscoping, set extension, and rig removal at TV production pace.",
-            "Animated character lip-sync and performed shot cleanup and color correction in After Effects and Blender."
+            "Composited VFX in Blender and After Effects for Robot Chicken, Crossing Swords, M.O.D.O.K., Santa Inc., and SuperMansion, with credits on several award-winning Adult Swim shows.",
+            "Did scene tracking, 3D effects simulation, keying, rotoscoping, set extension, and rig removal on a fast, sprint-based TV schedule.",
+            "Animated character lip-sync, and cleaned up and color-corrected shots for stop-motion and CG hybrid projects."
           ],
           "skills": "After Effects, Blender, 2D/3D tracking, compositing, keying, rotoscoping, lip-sync, set extension, rig removal, color correction"
         },
         {
-          "role": "Video Editor / VFX / Motion Graphics",
-          "studio": "VRenetic Inc.",
-          "location": "Los Angeles, CA",
-          "years": "Jul 2018 – Sep 2019",
+          "role": "Animator & Character Designer",
+          "studio": "Fat Cat Rolling LLC",
+          "location": "",
+          "years": "Jun 2021 – Jul 2021",
           "highlights": [
-            "Created motion graphics, live action video, and 360° content for the Vresh Social App across promotional campaigns.",
-            "Filmed, edited, and composited immersive media assets across multiple formats including 360° video and standard promotional content."
+            "Designed and animated several 2D film projects, mixing pencil on paper, Photoshop, and After Effects.",
+            "Animated character lip-sync and facial expressions in After Effects, and added 2D effects to live-action footage for an unannounced TV pilot."
           ],
-          "skills": "After Effects, Premiere Pro, motion graphics, 360° video, live action editing, compositing"
+          "skills": "Pencil on paper, Photoshop, After Effects, 2D animation, character design, lip-sync"
         },
         {
           "role": "VFX Artist",
@@ -339,9 +340,21 @@ try {
           "location": "Burbank, CA",
           "years": "Feb 2021 – Jun 2021",
           "highlights": [
-            "Animated character lip-sync for the series Freak Angels and integrated it seamlessly into existing 2D animation footage."
+            "Animated character lip-sync and facial expressions in After Effects for the series Freak Angels.",
+            "Blended the new animation into the existing 2D footage."
           ],
-          "skills": "After Effects, lip-sync animation, set clean up, compositing, animation integration"
+          "skills": "After Effects, lip-sync animation, set cleanup, compositing, animation integration"
+        },
+        {
+          "role": "Video Editor / VFX / Motion Graphics",
+          "studio": "VRenetic Inc.",
+          "location": "Los Angeles, CA",
+          "years": "Jul 2018 – Sep 2019",
+          "highlights": [
+            "Made 360° video, live-action video, and promotional motion graphics for the Vresh Social App.",
+            "Handled the whole pipeline from filming to final delivery, and made sure every piece met the technical specs for mobile and VR."
+          ],
+          "skills": "After Effects, Premiere Pro, motion graphics, 360° video, live-action editing, compositing"
         },
         {
           "role": "VFX Artist",
@@ -349,10 +362,48 @@ try {
           "location": "Sun Valley, CA",
           "years": "May 2017 – Dec 2017",
           "highlights": [
-            "Executed precision compositing, high-level rig removal, set extensions, and color correction to preserve the tactile stop-motion aesthetic of the award-winning series Tumble Leaf at Bix Pix Entertainment.",
-            "Collaborated closely with the studio's creative team to enhance overall visual storytelling and maintain high production standards."
+            "Did compositing, rig removal, set extensions, and color correction for the award-winning stop-motion series Tumble Leaf, keeping its handmade look.",
+            "Worked closely with the studio's creative team."
           ],
           "skills": "After Effects, Blender, 2D/3D tracking, compositing, keying, rotoscoping, lip-sync, set extension, rig removal, color correction"
+        }
+      ]
+    },
+    "sections": {
+      "about": [
+        {
+          "id": "awards",
+          "title": "Awards",
+          "items": [
+            {
+              "text": "Snap Inc. Annual Design Challenge, Winner",
+              "year": "2024"
+            },
+            {
+              "text": "Oculus Launch Pad Program, VR experience “Noodles”",
+              "year": "2017"
+            },
+            {
+              "text": "Card Walker Motion Picture Fellowship",
+              "year": "2017"
+            },
+            {
+              "text": "Merit Award, Say It in Eight Student Film Festival, “Hot Chocolate”",
+              "year": "2016"
+            },
+            {
+              "text": "Vincent E. DeFrances Scholarship in Animation",
+              "year": "2016"
+            },
+            {
+              "text": "Matt Groening Production Fellowship in Animation, “General Dupont Doing Laundry”",
+              "year": "2016"
+            },
+            {
+              "text": "Matt Groening Production Fellowship in Animation, “Hot Chocolate”",
+              "year": "2015"
+            }
+          ]
         }
       ]
     },
@@ -379,7 +430,13 @@ try {
         "heroName": "Kim Nguyen",
         "experienceHeading": "Experience",
         "creditsHeading": "Credits",
-        "elsewhereHeading": "Elsewhere"
+        "elsewhereHeading": "Elsewhere",
+        "sectionOrder": [
+          "bio",
+          "experience",
+          "awards",
+          "credits"
+        ]
       },
       "footer": {
         "cta": "Let's work together",
@@ -505,41 +562,7 @@ try {
           "accent-top": "#1E1A3A"
         }
       }
-    ],
-    "canvases": {
-      "test": [
-        {
-          "id": "bdckmlq",
-          "title": "",
-          "where": "after-gallery",
-          "grid": {
-            "cols": 12,
-            "rowHeight": 48,
-            "gap": 12
-          },
-          "blocks": [
-            {
-              "id": "bwfzdw4",
-              "align": "left",
-              "src": "",
-              "poster": "",
-              "alt": "",
-              "content": "Some text…",
-              "provider": "",
-              "videoId": "",
-              "title": "",
-              "type": "text",
-              "desktop": {
-                "c": 1,
-                "r": 1,
-                "w": 12,
-                "h": 2
-              }
-            }
-          ]
-        }
-      ]
-    }
+    ]
   };
 } catch (e) {
   /* If this file ever has a syntax error, the site shows a banner

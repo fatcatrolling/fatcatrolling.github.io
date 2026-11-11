@@ -39,7 +39,7 @@
     banner.textContent =
       'data.js has a syntax error: ' +
       (window.SITE_DATA_ERROR ? window.SITE_DATA_ERROR.message : 'data not loaded') +
-      ' — open validate.html to see details.';
+      ', open validate.html to see details.';
     document.addEventListener('DOMContentLoaded', () => document.body.prepend(banner));
   }
 
@@ -843,7 +843,12 @@
     const items = DATA.gallery && DATA.gallery[pageKey];
     const host = document.querySelector(selector);
     if (!host || !items) return;
-    host.innerHTML = items.map((it, i) => {
+    host.innerHTML = galleryTilesHtml(items);
+  }
+  // Tile markup shared by Featured Work and custom-section gallery blocks, so
+  // both get the lightbox, hover preview, scroll reveal and analytics.
+  function galleryTilesHtml(items) {
+    return items.map((it, i) => {
       const isVideo = it.type === 'video';
       const mp4Src = isVideo
         ? it.src.replace(/^videos\/webm\//, 'videos/mp4/').replace(/\.webm$/i, '.mp4')
@@ -960,22 +965,17 @@
       renderAbout();
     } else {
       // Reel/gallery pages render by convention: reels[pageKey] (Home uses
-      // 'tech') + gallery[pageKey]. A page can hide either built-in section via
-      // pages[pageKey].showReel / showWork (default = shown).
-      const pg = (DATA.pages && DATA.pages[pageKey]) || {};
+      // 'tech') + gallery[pageKey]. Hidden sections (pages[pageKey].hidden, or
+      // the older showReel/showWork:false) are skipped; renderSections() hides
+      // their elements.
+      const hidden = hiddenSectionKeys(pageKey);
       const reelKey = (pageKey === 'home') ? 'tech' : pageKey;
       const reelEl = document.querySelector('#hero-reel');
-      const reelSection = reelEl ? reelEl.closest('.section') : document.querySelector('.section--reel');
-      const showReel = pg.showReel !== false;
-      if (reelSection) reelSection.style.display = showReel ? '' : 'none';
-      if (showReel && reelEl && DATA.reels && DATA.reels[reelKey]) renderReel(reelKey, '#hero-reel');
+      if (!hidden.has('reel') && reelEl && DATA.reels && DATA.reels[reelKey]) renderReel(reelKey, '#hero-reel');
       const galleryEl = document.querySelector('#gallery');
-      const gallerySection = galleryEl ? galleryEl.closest('.section') : null;
-      const showWork = pg.showWork !== false;
-      if (gallerySection) gallerySection.style.display = showWork ? '' : 'none';
-      if (showWork && galleryEl && DATA.gallery && DATA.gallery[pageKey]) renderGallery(pageKey, '#gallery');
+      if (!hidden.has('work') && galleryEl && DATA.gallery && DATA.gallery[pageKey]) renderGallery(pageKey, '#gallery');
     }
-    renderCanvases(pageKey);
+    renderSections(pageKey);
     initReelButtons();
     initTileButtons();
     initVideoHoverPreview();
@@ -1017,7 +1017,7 @@
           inner = '<button class="reel canvas__reel" data-cv-reel="' + data + '" aria-label="Play ' + escapeAttr(b.title || 'reel') + '">' +
             (b.poster ? '<img class="reel__poster" src="' + escapeAttr(b.poster) + '" alt="">' : '') +
             '<div class="reel__play" aria-hidden="true"><svg class="reel__play-svg" viewBox="0 0 80 80"><circle class="reel__play-ring" cx="40" cy="40" r="38"/><polygon class="reel__play-arrow" points="32,24 32,56 58,40"/></svg></div></button>';
-        } else inner = '<div class="canvas__ph">reel — paste a Vimeo/YouTube URL</div>';
+        } else inner = '<div class="canvas__ph">reel, paste a Vimeo/YouTube URL</div>';
       }
       return '<div class="canvas__block" style="' + style + '">' + inner + '</div>';
     }).join('');
@@ -1025,36 +1025,10 @@
       '<div class="canvas__grid" style="grid-template-columns:repeat(' + cols + ',minmax(0,1fr));gap:' + gap + 'px;grid-auto-rows:' + rowH + 'px">' + blocks + '</div></section>';
   }
 
-  function renderCanvases(pageKey) {
-    document.querySelectorAll('.canvas-host').forEach((n) => n.remove());
-    let list = DATA.canvases && DATA.canvases[pageKey];
-    if (!list) return;
-    if (!Array.isArray(list)) list = [list]; // back-compat with old single-canvas format
-    const container = document.querySelector('.page-body .container') || document.querySelector('.page-body');
-    if (!container) return;
-    const reelSection = document.querySelector('.section--reel');
-    const reelVideo = document.querySelector('#hero-reel');
-    const galleryEl = document.querySelector('#gallery');
-    const gallerySection = galleryEl ? galleryEl.closest('.section') : null;
-    const anchors = { 'top': [], 'reel-mid': [], 'after-reel': [], 'work-mid': [], 'after-gallery': [] };
-    list.forEach((cv) => {
-      if (!cv) return;
-      if ((!cv.blocks || !cv.blocks.length) && !cv.title) return;
-      (anchors[cv.where] || anchors['after-gallery']).push(cv);
-    });
-    Object.keys(anchors).forEach((where) => {
-      if (!anchors[where].length) return;
-      const host = document.createElement('div');
-      host.className = 'canvas-host';
-      host.innerHTML = anchors[where].map(renderCanvasSectionHtml).join('');
-      if (where === 'top') { if (reelSection) reelSection.before(host); else container.insertBefore(host, container.firstChild); }
-      else if (where === 'reel-mid') { if (reelVideo) reelVideo.before(host); else if (reelSection) reelSection.appendChild(host); else container.appendChild(host); }
-      else if (where === 'after-reel') { if (reelSection) reelSection.after(host); else container.appendChild(host); }
-      else if (where === 'work-mid') { if (galleryEl) galleryEl.before(host); else if (gallerySection) gallerySection.appendChild(host); else container.appendChild(host); }
-      else { if (gallerySection) gallerySection.after(host); else container.appendChild(host); }
-    });
-    // Wire reel blocks (Vimeo/YouTube) to play, reusing the site's reel embed.
-    document.querySelectorAll('.canvas__reel[data-cv-reel]').forEach((btn) => {
+  // Extra videos (Video blocks + free-form reel blocks) play in the site's
+  // reel lightbox. data-cv-reel = {provider, id, title}.
+  function wireExtraReels() {
+    document.querySelectorAll('[data-cv-reel]').forEach((btn) => {
       if (btn.__cvWired) return; btn.__cvWired = true;
       btn.addEventListener('click', () => {
         let r; try { r = JSON.parse(btn.getAttribute('data-cv-reel')); } catch (e) { return; }
@@ -1063,6 +1037,165 @@
         openReel(r, btn, key);
       });
     });
+  }
+
+  /* ---------- Page sections: order, show/hide, custom sections ----------
+     data.pages[pageKey].sectionOrder = keys in page order: built-ins (About:
+       bio, experience, credits; reel pages: reel, work) + custom section ids.
+       Keys missing from the order go to the end.
+     data.pages[pageKey].hidden = keys to hide (older showReel/showWork:false
+       still count).
+     data.sections[pageKey] = custom sections, either
+       { id, title, blocks:[...] }  stacked blocks: text | list | gallery | video
+       { id, title, layout:'freeform', grid, blocks:[canvas blocks] }
+       { id, title, items:[...] }   older list-only shape = one list block.
+     The editor (Pages tab) mirrors the order logic in sectionOrderFor(). */
+  function hiddenSectionKeys(pageKey) {
+    const pg = (DATA.pages && DATA.pages[pageKey]) || {};
+    const set = new Set(Array.isArray(pg.hidden) ? pg.hidden : []);
+    if (pg.showReel === false) set.add('reel');
+    if (pg.showWork === false) set.add('work');
+    return set;
+  }
+  function builtinSectionEls(pageKey) {
+    const sectionOf = (sel) => { const el = document.querySelector(sel); return el ? el.closest('.section') : null; };
+    const out = pageKey === 'about'
+      ? [['bio', sectionOf('[data-bind="about-short"]')], ['experience', sectionOf('[data-bind="experience"]')], ['credits', sectionOf('[data-bind="credits"]')]]
+      : [['reel', document.querySelector('.section--reel') || sectionOf('#hero-reel')], ['work', sectionOf('#gallery')]];
+    return out.filter(([, el]) => el);
+  }
+  // Tiny safe formatting: **bold**, *italic*, [label](https://...). Escapes
+  // first, so nothing else in the text can become HTML. Links: http(s)/mailto.
+  function inlineFormat(s) {
+    let out = escapeHtml(s);
+    out = out.replace(/\[([^\]\n]+)\]\(((?:https?:\/\/|mailto:)[^\s)]+)\)/g, (m, label, url) =>
+      '<a href="' + url + '"' + (url.startsWith('mailto:') ? '' : ' target="_blank" rel="noopener"') + '>' + label + '</a>');
+    out = out.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    out = out.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+    return out;
+  }
+  // Items may be { text, year } or a plain string (older data).
+  function listItem(it) {
+    if (it && typeof it === 'object') return { text: String(it.text == null ? '' : it.text), year: String(it.year == null ? '' : it.year) };
+    return { text: String(it == null ? '' : it), year: '' };
+  }
+  function sectionBlocks(sec) {
+    if (Array.isArray(sec.blocks)) return sec.blocks.filter(Boolean);
+    if (Array.isArray(sec.items)) return [{ type: 'list', items: sec.items }];
+    return [];
+  }
+  function blockHtml(b) {
+    if (b.type === 'text') {
+      const t = String(b.text == null ? '' : b.text).trim();
+      if (!t) return '';
+      return '<div class="cs-block cs-text">' + t.split(/\n\s*\n/).map((p) =>
+        '<p>' + inlineFormat(p.trim()).replace(/\n/g, '<br>') + '</p>').join('') + '</div>';
+    }
+    if (b.type === 'list') {
+      const items = (b.items || []).map(listItem).filter((it) => it.text.trim() || it.year.trim());
+      if (!items.length) return '';
+      return '<div class="cs-block"><ul class="list-section__list">' +
+        items.map((it) => '<li class="list-section__item"><span class="list-section__text">' + inlineFormat(it.text) + '</span>' +
+          (it.year.trim() ? '<span class="list-section__year">' + escapeHtml(it.year) + '</span>' : '') + '</li>').join('') +
+        '</ul></div>';
+    }
+    if (b.type === 'gallery') {
+      const items = (b.items || []).filter((it) => it && it.src);
+      if (!items.length) return '';
+      return '<div class="cs-block"><div class="gallery">' + galleryTilesHtml(items) + '</div></div>';
+    }
+    if (b.type === 'video') {
+      if (!b.id || !b.provider || b.provider === 'placeholder') return '';
+      const label = b.title || 'video';
+      const data = escapeAttr(JSON.stringify({ provider: b.provider, id: b.id, title: b.title || '' }));
+      const chips = [b.duration, b.year].filter((v) => v != null && String(v).trim())
+        .map((v) => '<span class="reel__chip">' + escapeHtml(String(v)) + '</span>').join('');
+      const shots = (b.shotlist || []).filter((s) => s && (s.time || s.project || s.role));
+      return '<div class="cs-block">' +
+        '<button class="reel cs-reel" data-cv-reel="' + data + '" aria-label="Play ' + escapeAttr(label) + '">' +
+          (b.poster ? '<img class="reel__poster" src="' + escapeAttr(b.poster) + '" alt="' + escapeAttr(label) + ' poster" />' : '') +
+          '<div class="reel__play" aria-hidden="true"><svg class="reel__play-svg" viewBox="0 0 80 80">' +
+            '<circle class="reel__play-ring" cx="40" cy="40" r="38" /><polygon class="reel__play-arrow" points="32,24 32,56 58,40" /></svg></div>' +
+          ((b.title || chips) ? '<div class="reel__overlay"><div class="reel__meta"><span class="reel__title">' + escapeHtml(b.title || '') + '</span>' + chips + '</div></div>' : '') +
+        '</button>' +
+        (shots.length ? '<div class="shotlist" aria-label="Shotlist">' + shots.map((s) =>
+          '<div class="shotlist__row"><span class="shotlist__time">' + escapeHtml(s.time) + '</span>' +
+          '<span class="shotlist__project">' + escapeHtml(s.project) + '</span>' +
+          '<span class="shotlist__role">' + escapeHtml(s.role) + '</span></div>').join('') + '</div>' : '') +
+        '</div>';
+    }
+    return '';
+  }
+  function customSectionEl(sec) {
+    let html;
+    if (sec.layout === 'freeform') {
+      if ((!sec.blocks || !sec.blocks.length) && !sec.title) return null;
+      html = renderCanvasSectionHtml(sec);
+    } else {
+      const body = sectionBlocks(sec).map(blockHtml).join('');
+      if (!body && !sec.title) return null;
+      const tid = 'ls-' + (sec.id || Math.random().toString(36).slice(2));
+      html = '<section class="section list-section custom-section"' + (sec.title ? ' aria-labelledby="' + escapeAttr(tid) + '"' : '') + '>' +
+        (sec.title
+          ? '<h2 class="section__title" id="' + escapeAttr(tid) + '">' + escapeHtml(sec.title) + '</h2>' +
+            '<span class="section__rule in-view" aria-hidden="true"></span>'
+          : '') +
+        body + '</section>';
+    }
+    const host = document.createElement('div');
+    host.className = 'list-section-host';
+    host.innerHTML = html;
+    return host;
+  }
+  // Legacy `where` placement, used only when a page has no saved sectionOrder.
+  const LEGACY_WHERE = { 'after-bio': 'bio', 'after-experience': 'experience', 'after-credits': 'credits', 'after-reel': 'reel', 'after-gallery': 'work' };
+  function sectionOrderFor(pageKey, builtinKeys, customs) {
+    const pg = (DATA.pages && DATA.pages[pageKey]) || {};
+    const known = new Set(builtinKeys.concat(customs.map((s) => s.id)));
+    let order;
+    if (Array.isArray(pg.sectionOrder)) {
+      order = pg.sectionOrder.filter((k, i, a) => known.has(k) && a.indexOf(k) === i);
+    } else {
+      order = builtinKeys.slice();
+      customs.forEach((s) => {
+        if (s.where === 'top') { order.unshift(s.id); return; }
+        const at = order.indexOf(LEGACY_WHERE[s.where]);
+        if (at >= 0) order.splice(at + 1, 0, s.id); else order.push(s.id);
+      });
+    }
+    known.forEach((k) => { if (order.indexOf(k) < 0) order.push(k); });
+    return order;
+  }
+  function renderSections(pageKey) {
+    document.querySelectorAll('.list-section-host').forEach((n) => n.remove());
+    const builtins = builtinSectionEls(pageKey);
+    const customs = ((DATA.sections && DATA.sections[pageKey]) || []).filter((s) => s && s.id);
+    const hidden = hiddenSectionKeys(pageKey);
+    builtins.forEach(([k, el]) => { el.style.display = hidden.has(k) ? 'none' : ''; });
+    if (builtins.length || customs.length) {
+      const els = new Map(builtins);
+      customs.forEach((s) => { if (hidden.has(s.id)) return; const el = customSectionEl(s); if (el) els.set(s.id, el); });
+      // Insert everything, in order, where the first built-in section sits now
+      // (or at the end of the page body if this page has no built-ins).
+      const marker = document.createComment('sections');
+      let placed = true;
+      if (builtins.length) {
+        const first = builtins.map(([, el]) => el).reduce((a, b) =>
+          (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING) ? b : a);
+        first.before(marker);
+      } else {
+        const host = document.querySelector('.page-body .container:last-of-type') || document.querySelector('.page-body');
+        if (host) host.appendChild(marker); else placed = false;
+      }
+      if (placed) {
+        sectionOrderFor(pageKey, builtins.map(([k]) => k), customs).forEach((k) => {
+          const el = els.get(k);
+          if (el) marker.before(el);
+        });
+        marker.remove();
+      }
+    }
+    wireExtraReels();
   }
 
   /* ---------- Editor live-preview hook ----------
