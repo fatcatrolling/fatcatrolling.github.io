@@ -445,6 +445,7 @@ try {
         "reelsHeading": "Reels",
         "creditsLabel": "Credits",
         "tagline": "Hand-built. No cookies. Anonymous visit counts only.",
+        "rights": "All rights reserved. No reuse or AI training without permission.",
         "navHome": "Home",
         "navTechnical": "Technical Animation",
         "navAnimation": "Animation",

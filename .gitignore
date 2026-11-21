@@ -30,3 +30,26 @@ README.md
 PREPARING-ASSETS.md
 validate.html
 _editor/
+
+# Safety net: secrets and private documents never get committed
+.env
+.env.*
+*.pem
+*.key
+*.p12
+secrets*
+*.csv
+*.pdf
+*.doc
+*.docx
+*.xlsx
+# Working/source files (big + private) stay local
+*.psd
+*.ai
+*.aep
+*.prproj
+*.blend
+*.ma
+*.mb
+*.fbx
+backups/
